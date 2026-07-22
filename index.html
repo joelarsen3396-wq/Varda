@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head>3
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Varda · First Heartbeat</title>
@@ -208,7 +208,11 @@ async function fetchSpecies(lat,lng){
     const isEsa = st => /endangered|threatened/i.test(st||'');
     const listed = species.filter(x=>isEsa(x.status));
     const flagged = species.filter(x=>!isEsa(x.status));
-    return { species, listed, flagged, birds, crithab, refuges,
+    /* IPaC's migbirds bucket comes back empty here; the birds arrive inside the
+       populations list tagged as a bird group. Read what the service sends. */
+    const birdsCC = birds.length ? birds : flagged.filter(x=>/bird/i.test(x.group));
+    const eagles = species.filter(x=>/bald eagle|golden eagle/i.test(x.name));
+    return { species, listed, flagged, birds: birdsCC, eagles, crithab, refuges,
              office: office ? {name:pickName(office), phone:office.phone||office.phoneNumber||'', url:office.url||office.websiteUrl||''} : null };
   }catch(e){ clearTimeout(timer); return null; }
 }
@@ -592,12 +596,18 @@ function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
   }
 
   if(sp.birds.length){
-    html += '<h3 class="sec">Protected birds in range</h3>'
-         + '<div class="soul legal"><div class="tag">The feather rule, made specific</div>'
-         + '<p>Most wild bird feathers are illegal to keep under the Migratory Bird Treaty Act of 1918 — even ones found on the ground. These are the protected birds whose range covers this spot:</p>'
-         + '<p style="margin-top:6px;"><b>'+sp.birds.slice(0,12).map(b=>esc(b.name)).join('</b> · <b>')+'</b>'
-         + (sp.birds.length>12 ? ' <span class="src">and '+(sp.birds.length-12)+' more</span>' : '')+'</p>'
+    html += '<h3 class="sec">Birds worth knowing about here</h3>'
+         + '<div class="soul legal"><div class="tag">The feather rule</div>'
+         + '<p>Nearly every native bird is protected under the Migratory Bird Treaty Act of 1918 — keeping a feather is illegal even when you found it on the ground. Fish and Wildlife flags these particular birds as declining in this area:</p>'
+         + '<p style="margin-top:6px;"><b>'+sp.birds.slice(0,14).map(b=>esc(b.name)).join('</b> · <b>')+'</b>'
+         + (sp.birds.length>14 ? ' <span class="src">and '+(sp.birds.length-14)+' more</span>' : '')+'</p>'
          + '<div class="src"><a href="https://www.fws.gov/law/migratory-bird-treaty-act-1918">Migratory Bird Treaty Act</a></div></div>';
+  }
+
+  if(sp.eagles.length){
+    html += '<div class="soul legal"><div class="tag">Eagles have their own law</div>'
+         + '<p>'+esc(sp.eagles.map(e=>e.name).join(' and '))+' range here. Bald eagles came off the endangered list in 2007, which fools a lot of people — they stay protected under the Bald and Golden Eagle Protection Act. A single feather, found on the ground, is still a federal offence to keep. Photograph it and leave it where it lies.</p>'
+         + '<div class="src"><a href="https://www.fws.gov/law/bald-and-golden-eagle-protection-act">Bald and Golden Eagle Protection Act</a></div></div>';
   }
 
   if(sp.crithab.length){
@@ -619,7 +629,7 @@ function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
        + '<div class="src">In the spirit of <a href="https://lnt.org/why/7-principles/">Leave No Trace</a></div></div>';
 
   html += '<details><summary>What the servers said</summary><div class="rawfeat">IPaC returned '
-       + sp.listed.length+' ESA-listed, '+sp.flagged.length+' otherwise flagged, '+sp.birds.length+' migratory birds, '
+       + sp.listed.length+' ESA-listed, '+sp.flagged.length+' otherwise flagged (of which '+sp.birds.length+' birds), '
        + sp.crithab.length+' critical habitat records, '+sp.refuges.length+' refuges.</div></details>';
 
   out.innerHTML = html;
@@ -637,6 +647,11 @@ function injectSpeciesCard(sp){
       + '<p>'+esc(names)+(sp.listed.length>3?' and '+(sp.listed.length-3)+' more':'')
       + ' — species whose mapped range covers this ground. Not a sighting, just worth knowing before you move through.</p>'
       + '<div class="src"><a href="https://ipac.ecosphere.fws.gov/">USFWS IPaC</a></div></div>');
+  }
+  if(sp.eagles && sp.eagles.length){
+    bits.push('<div class="soul legal"><div class="tag">Eagles have their own law</div>'
+      + '<p>Bald eagles came off the endangered list in 2007 but stay protected under their own act — a found feather is still a federal offence to keep. Photograph it, leave it.</p>'
+      + '<div class="src"><a href="https://www.fws.gov/law/bald-and-golden-eagle-protection-act">Bald and Golden Eagle Protection Act</a></div></div>');
   }
   if(sp.crithab.length){
     bits.push('<div class="soul legal"><div class="tag">Designated critical habitat</div>'
