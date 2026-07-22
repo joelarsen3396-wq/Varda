@@ -1,0 +1,557 @@
+{
+  "version": "2026-07-a",
+  "updated": "2026-07",
+  "note": "Order is the logic: hard no's first, named units before agencies, fall-throughs last. First match wins. Live activity data slots in between the hard no's and the manager defaults.",
+  "rules": [
+    {
+      "act": "bike",
+      "v": "no",
+      "conf": "verified",
+      "hard": true,
+      "head": "Not here — this is designated Wilderness",
+      "why": "Bicycles and all mechanized travel are prohibited in every federal Wilderness area. The trail is open to your feet, not your wheels.",
+      "src": {
+        "n": "36 CFR 261.18",
+        "u": "https://www.ecfr.gov/current/title-36/section-261.18"
+      },
+      "ver": "2026-07",
+      "redirect": "Non-wilderness trails nearby often ride beautifully — check the surrounding forest’s trail pages.",
+      "match": {
+        "land": "wilderness"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "no",
+      "conf": "hedged",
+      "hard": true,
+      "head": "Not on trails here — national park",
+      "why": "In national parks, bikes are generally limited to park roads and specifically designated routes; trails are closed to them unless a park rule says otherwise.",
+      "src": {
+        "n": "36 CFR 4.30",
+        "u": "https://www.ecfr.gov/current/title-36/section-4.30"
+      },
+      "ver": "2026-07",
+      "redirect": "Park roads are usually open to riding — the park’s own site lists any designated bike routes.",
+      "match": {
+        "land": "nps"
+      }
+    },
+    {
+      "act": "drive",
+      "v": "no",
+      "conf": "verified",
+      "hard": true,
+      "head": "Not here — this is designated Wilderness",
+      "why": "No motor vehicles and no roads in designated Wilderness. Where the Wilderness begins, the driving ends.",
+      "src": {
+        "n": "Wilderness Act · 36 CFR 261.18",
+        "u": "https://www.ecfr.gov/current/title-36/section-261.18"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "wilderness"
+      }
+    },
+    {
+      "act": "drive",
+      "v": "cond",
+      "conf": "hedged",
+      "hard": true,
+      "head": "Park roads only",
+      "why": "In national parks, motor vehicles stay on park roads open to the public. Off-road travel is prohibited.",
+      "src": {
+        "n": "36 CFR 4.10",
+        "u": "https://www.ecfr.gov/current/title-36/section-4.10"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "nps"
+      }
+    },
+    {
+      "act": "access",
+      "v": "no",
+      "conf": "hedged",
+      "hard": true,
+      "head": "Recorded as closed to public entry",
+      "why": "PAD-US records this parcel’s public access as closed — often a conservancy holding, a research site, or a utility parcel. Closed on the map means ask first, not find a way around the edge.",
+      "src": {
+        "n": "USGS PAD-US",
+        "u": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview"
+      },
+      "ver": "2026-07",
+      "redirect": "Open public ground is often a few hundred metres away — see the nearby ground below.",
+      "match": {
+        "accessClosed": true
+      }
+    },
+    {
+      "act": "access",
+      "v": "cond",
+      "conf": "hedged",
+      "hand": true,
+      "head": "Welcome, on the forest’s terms",
+      "why": "McDonald-Dunn is Oregon State University’s working research forest, open for public day use on its designated roads and trails. Areas close during active research and timber operations, and the posted hours and gates are the rule.",
+      "src": {
+        "n": "OSU College Forests",
+        "u": "https://cf.forestry.oregonstate.edu/"
+      },
+      "ver": "2026-07",
+      "closures": {
+        "n": "OSU forest closures",
+        "u": "https://cf.forestry.oregonstate.edu/"
+      },
+      "match": {
+        "land": "mcdonald"
+      }
+    },
+    {
+      "act": "access",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Open on foot — permits often apply",
+      "why": "Designated Wilderness is open to visitors, but many units require a permit, cap group size, and limit entry by quota in season. The managing forest or park issues them.",
+      "src": {
+        "n": "Wilderness Act of 1964",
+        "u": "https://www.wilderness.net/learn-about-wilderness/key-laws/wilderness-act/default.php"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "wilderness"
+      }
+    },
+    {
+      "act": "access",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Open — park entrance rules apply",
+      "why": "National parks are open to visitors under the park’s own hours, fees, and any timed-entry or permit systems. The park’s own site carries what is in force right now.",
+      "src": {
+        "n": "National Park Service",
+        "u": "https://www.nps.gov/"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "nps"
+      }
+    },
+    {
+      "act": "access",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Open where the refuge says so",
+      "why": "National wildlife refuges are open to visitors in the areas and seasons the refuge designates — wildlife comes first here, and parts of a refuge close for nesting, wintering, or hunting seasons. Daylight hours are the norm and the refuge’s own page carries what’s open today.",
+      "src": {
+        "n": "National Wildlife Refuge System",
+        "u": "https://www.fws.gov/refuges"
+      },
+      "ver": "2026-07",
+      "closures": {
+        "n": "Refuge alerts and closures",
+        "u": "https://www.fws.gov/refuges"
+      },
+      "match": {
+        "land": "refuge"
+      }
+    },
+    {
+      "act": "access",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Access here is recorded as restricted",
+      "why": "PAD-US flags this ground as restricted access — entry may need a permit, be open only in certain seasons, or be limited to particular uses. The manager below holds the terms.",
+      "src": {
+        "n": "USGS PAD-US",
+        "u": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview"
+      },
+      "ver": "2026-07",
+      "match": {
+        "accessCode": "RA"
+      }
+    },
+    {
+      "act": "access",
+      "v": "yes",
+      "conf": "hedged",
+      "head": "Generally open — BLM land",
+      "why": "BLM ground is broadly open to public entry unless posted or gated otherwise. Getting to it is the separate question — a public boundary is not a promise of a legal way in.",
+      "src": {
+        "n": "BLM recreation",
+        "u": "https://www.blm.gov/programs/recreation"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "blm"
+      }
+    },
+    {
+      "act": "access",
+      "v": "yes",
+      "conf": "hedged",
+      "head": "Generally open — National Forest",
+      "why": "National forests are open to public entry unless a closure order says otherwise. Fire, storm, and operational closures are common in season and live only in forest orders, never in map data.",
+      "src": {
+        "n": "USDA Forest Service",
+        "u": "https://www.fs.usda.gov/"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "usfs"
+      }
+    },
+    {
+      "act": "access",
+      "v": "yes",
+      "conf": "hedged",
+      "head": "Open during posted hours — city or county park",
+      "why": "Local parks are open to the public during the hours posted at the entrance. The details — dogs, fires, hours, overnight rules — are set by city or county ordinance, and the parks department has them.",
+      "src": {
+        "n": "Local parks department",
+        "u": "https://www.usa.gov/local-governments"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "localPark"
+      }
+    },
+    {
+      "act": "access",
+      "v": "yes",
+      "conf": "hedged",
+      "head": "Open during posted hours — Oregon State Parks",
+      "why": "State parks are open to the public during posted hours. Some charge a day-use parking fee, and staying overnight outside a campground generally isn’t allowed.",
+      "src": {
+        "n": "Oregon State Parks",
+        "u": "https://stateparks.oregon.gov/"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "statePark"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "cond",
+      "conf": "hedged",
+      "hand": true,
+      "head": "Yes, with the forest’s house rules",
+      "why": "McDonald-Dunn is Oregon State University’s working research forest. Bikes are welcome on designated roads and trails, dawn to dusk. E-bikes are prohibited, and areas close during active research and timber operations.",
+      "src": {
+        "n": "OSU College Forests",
+        "u": "https://cf.forestry.oregonstate.edu/"
+      },
+      "ver": "2026-07",
+      "closures": {
+        "n": "OSU forest closures",
+        "u": "https://cf.forestry.oregonstate.edu/"
+      },
+      "match": {
+        "land": "mcdonald"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Designated routes only — wildlife refuge",
+      "why": "Refuges allow bicycles only on roads and trails opened to them; most refuge ground stays off-limits to wheels to keep disturbance low. The refuge’s map marks what’s open.",
+      "src": {
+        "n": "National Wildlife Refuge System",
+        "u": "https://www.fws.gov/refuges"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "refuge"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "yes",
+      "conf": "hedged",
+      "head": "Generally yes on BLM land",
+      "why": "BLM lands are broadly open to bicycles on existing roads and trails unless a travel plan or posting says otherwise. Purpose-built systems like Sandy Ridge welcome bikes outright.",
+      "src": {
+        "n": "BLM travel management",
+        "u": "https://www.blm.gov/programs/recreation"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "blm"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "On designated trails — Oregon State Parks",
+      "why": "Bikes ride on trails designated for them, and since 2025 e-bikes may go wherever bikes may, unless a specific trail is posted otherwise.",
+      "src": {
+        "n": "Oregon State Parks e-bike rules",
+        "u": "https://stateparks.oregon.gov/index.cfm?do=v.page&id=131"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "statePark"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "On the paths that allow it — local park",
+      "why": "City and county parks usually welcome bikes on paved paths and shared-use trails, and usually not on turf, ballfields, or footpath-only routes. Signs at the trailhead carry the local rule.",
+      "src": {
+        "n": "Local parks department",
+        "u": "https://www.usa.gov/local-governments"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "localPark"
+      }
+    },
+    {
+      "act": "bike",
+      "v": "unknown",
+      "conf": "hedged",
+      "head": "No trail record at this spot",
+      "why": "You’re on Forest Service land, but no trail with bike attributes shows in the federal data here. No recorded restriction is not the same as permission — the ranger district knows.",
+      "src": {
+        "n": "USFS trails data",
+        "u": "https://data-usfs.hub.arcgis.com/"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "usfs"
+      }
+    },
+    {
+      "act": "drive",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Park roads and lots only",
+      "why": "In a city or county park, motor vehicles stay on the park roads and parking areas. Driving on paths or turf isn’t permitted.",
+      "src": {
+        "n": "Local parks department",
+        "u": "https://www.usa.gov/local-governments"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "localPark"
+      }
+    },
+    {
+      "act": "drive",
+      "v": "no",
+      "conf": "verified",
+      "head": "No designated route here — so not by vehicle",
+      "why": "On National Forest land, motor vehicles are legal only on routes designated in the Motor Vehicle Use Map. No designated route at this spot means motorized travel isn’t authorized — unless you’re on a state, county, or private road inside the boundary, which follows its own rules.",
+      "src": {
+        "n": "36 CFR 261.13",
+        "u": "https://www.ecfr.gov/current/title-36/section-261.13"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "usfs"
+      }
+    },
+    {
+      "act": "drive",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Public roads and auto tour routes only",
+      "why": "On a refuge, motor vehicles stay on roads and pull-offs open to the public — many refuges run a signed auto tour route. Off-road travel is prohibited, and some roads close seasonally for wildlife.",
+      "src": {
+        "n": "National Wildlife Refuge System",
+        "u": "https://www.fws.gov/refuges"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "refuge"
+      }
+    },
+    {
+      "act": "drive",
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Designated and existing routes only",
+      "why": "BLM travel rules keep vehicles to designated or existing routes, which vary by field office plan. The local office’s travel map is the authority.",
+      "src": {
+        "n": "BLM travel management",
+        "u": "https://www.blm.gov/programs/recreation"
+      },
+      "ver": "2026-07",
+      "match": {
+        "land": "blm"
+      }
+    },
+    {
+      "act": "any",
+      "v": "unknown",
+      "conf": "none",
+      "head": "Likely private or unlisted land",
+      "why": "No public land unit is recorded at this spot. That usually means private ground — and everything here, from access onward, needs the landowner’s permission.",
+      "src": {
+        "n": "USGS PAD-US",
+        "u": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview"
+      },
+      "ver": "2026-07",
+      "match": {
+        "empty": true
+      }
+    },
+    {
+      "act": "any",
+      "v": "unknown",
+      "conf": "none",
+      "head": "We don’t have a verified answer here",
+      "why": "The land manager below is recorded, but we don’t yet carry a verified rule for this activity on this ground. The manager’s office will know.",
+      "src": {
+        "n": "USGS PAD-US",
+        "u": "https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview"
+      },
+      "ver": "2026-07",
+      "match": {
+        "any": true
+      }
+    }
+  ],
+  "steward": [
+    {
+      "match": {
+        "landAny": [
+          "mcdonald"
+        ]
+      },
+      "text": "This is a working research forest — study plots, log trucks, and students share these roads. Yield wide, stay on the designated routes, and leave the flagging and instruments exactly where science put them."
+    },
+    {
+      "match": {
+        "landAny": [
+          "refuge"
+        ]
+      },
+      "text": "This ground was set aside for the animals rather than for us, and we visit on their terms. Keep to the routes, let the binoculars do the approaching, and leave with the place undisturbed by your having been in it."
+    },
+    {
+      "match": {
+        "landAny": [
+          "wilderness"
+        ],
+        "wildernessNearby": true
+      },
+      "text": "You’re on the edge of land protected to stay untamed. Travel quietly, keep to durable ground, and let it be wilder for your passing through."
+    },
+    {
+      "match": {
+        "act": "bike",
+        "any": true
+      },
+      "text": "Wet trail? Ride through the puddle, not around it — riding around widens the trail with every pass. If you’re leaving ruts, the trail is asking you to come back another day."
+    },
+    {
+      "match": {
+        "act": "access",
+        "any": true
+      },
+      "text": "Park so the next rig can still get by and the gate can still swing. Leave gates as you found them, walk the ground that’s already been walked, and keep it quiet enough that the place sounds like itself."
+    },
+    {
+      "match": {
+        "act": "drive",
+        "any": true
+      },
+      "text": "Soft spring roads remember every tire. If the road is pulling at your wheels, it isn’t ready for you yet — the ruts you skip today are the grading crews you spare in July."
+    },
+    {
+      "match": {
+        "any": true
+      },
+      "text": "You’re a guest on this ground. Move gently, pack out what you brought, and leave the place better for your visit."
+    }
+  ],
+  "legal": [
+    {
+      "match": {
+        "act": "bike",
+        "landAny": [
+          "blm",
+          "usfs"
+        ]
+      },
+      "h": "E-bikes are a different animal here",
+      "text": "On federal land, an e-bike legally counts as a motor vehicle — allowed only on motorized routes. In Oregon State Parks the rule flips: e-bikes ride wherever bikes do. Same machine, opposite rules, sometimes a mile apart.",
+      "src": {
+        "n": "USFS e-bike policy",
+        "u": "https://www.fs.usda.gov/managing-land/trails/e-bikes"
+      }
+    },
+    {
+      "match": {
+        "act": "bike",
+        "wildernessNearby": true
+      },
+      "h": "Wilderness boundary nearby",
+      "text": "Designated Wilderness sits within a couple of kilometers of you, and bikes must turn back at its boundary — the line is legal, not just a sign.",
+      "src": {
+        "n": "36 CFR 261.18",
+        "u": "https://www.ecfr.gov/current/title-36/section-261.18"
+      }
+    },
+    {
+      "match": {
+        "act": "access",
+        "landAny": [
+          "blm",
+          "usfs"
+        ]
+      },
+      "h": "Public land, private way in",
+      "text": "A public boundary on the map is not a promise of a legal route to it. Roads and driveways crossing private ground stay private, and some public parcels have no public way in at all. The manager’s office knows which.",
+      "src": {
+        "n": "BLM recreation",
+        "u": "https://www.blm.gov/programs/recreation"
+      }
+    },
+    {
+      "match": {
+        "act": "access",
+        "landAny": [
+          "usfs"
+        ]
+      },
+      "h": "Many trailheads want a pass",
+      "text": "Across Oregon and Washington a lot of Forest Service trailheads ask for a Northwest Forest Pass or an interagency pass on the windshield. The sign at the lot is the authority.",
+      "src": {
+        "n": "Recreation.gov",
+        "u": "https://www.recreation.gov/"
+      }
+    },
+    {
+      "match": {
+        "landAny": [
+          "refuge"
+        ]
+      },
+      "h": "A refuge runs on its own calendar",
+      "text": "Refuges are managed for wildlife first, so the rules shift with the season — areas close for nesting and wintering, hunting is allowed only in designated units during set seasons, and drones are prohibited across the system. Check the refuge’s page before you go.",
+      "src": {
+        "n": "National Wildlife Refuge System",
+        "u": "https://www.fws.gov/refuges"
+      }
+    },
+    {
+      "match": {
+        "landAny": [
+          "acec"
+        ]
+      },
+      "h": "Area of Critical Environmental Concern",
+      "text": "Part of this ground carries an ACEC designation — the BLM’s flag for fragile or irreplaceable values. Rules on off-trail travel and disturbance tighten here; treat it as the sensitive place it is.",
+      "src": {
+        "n": "BLM ACECs",
+        "u": "https://www.blm.gov/programs/planning-and-nepa/planning-101/special-planning-designations/acecs"
+      }
+    }
+  ]
+    }
