@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Varda · First Heartbeat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F6F1; --ink:#1B211D; --pine:#2F5D42; --blaze:#DD5A12;
+    --stone:#7C837B; --line:#DDDCD4; --card:#FFFFFF; --clay:#8C3B22;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    font-size:14px; line-height:1.5; padding:20px 16px 48px; max-width:640px; margin:0 auto;
+  }
+  h1,h2,h3,.btn,.seg button,.chiplet{font-family:'Barlow Condensed',system-ui,sans-serif;}
+  header{margin-bottom:20px;}
+  .eyebrow{color:var(--stone); font-size:11px; letter-spacing:.14em; text-transform:uppercase;}
+  h1{font-size:34px; font-weight:700; line-height:1.1; margin-top:4px;}
+  h1 small{color:var(--pine); font-weight:600;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 16px; margin-bottom:16px;}
+  label.small{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--stone); display:block; margin-bottom:6px;}
+  .coords{display:flex; gap:8px; margin-bottom:10px;}
+  .coords input{flex:1; min-width:0; font:inherit; font-size:13px; padding:9px 10px; border:1px solid var(--line); border-radius:7px; background:var(--paper);}
+  .coords input:focus{outline:2px solid var(--pine); outline-offset:1px;}
+  .btn{display:block; width:100%; padding:13px; font-size:18px; font-weight:600; letter-spacing:.03em; color:#fff; background:var(--pine); border:none; border-radius:8px; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .btn:active{background:#254B35;}
+  .btn:focus-visible{outline:3px solid var(--blaze); outline-offset:2px;}
+  .btn[disabled]{background:var(--stone); cursor:wait;}
+  .btn.ghost{background:var(--paper); color:var(--pine); border:1px solid var(--pine); font-size:15px; padding:10px; margin-bottom:10px;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;}
+  .chiplet{font-size:13px; font-weight:600; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--stone); cursor:pointer;}
+  .chiplet:active{border-color:var(--pine); color:var(--pine);}
+  .seg{display:flex; gap:6px; margin-bottom:14px;}
+  .seg button{flex:1; padding:10px 4px; font-size:15px; font-weight:600; border:1px solid var(--line); background:var(--card); color:var(--stone); border-radius:8px; cursor:pointer;}
+  .seg button[aria-pressed="true"]{background:var(--pine); border-color:var(--pine); color:#fff;}
+  /* Verdict */
+  .verdict-card{border-left:6px solid var(--stone);}
+  .verdict-card.v-yes{border-left-color:var(--pine);}
+  .verdict-card.v-cond{border-left-color:var(--blaze);}
+  .verdict-card.v-no{border-left-color:var(--clay);}
+  .v-head{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+  .v-diamond{width:20px; height:20px; transform:rotate(45deg); border-radius:4px; background:var(--stone); flex:none;}
+  .v-yes .v-diamond{background:var(--pine);} .v-cond .v-diamond{background:var(--blaze);} .v-no .v-diamond{background:var(--clay);}
+  .v-head h2{font-size:26px; font-weight:700; line-height:1.1;}
+  .v-why{font-size:14px; margin-bottom:10px;}
+  .v-meta{font-size:12px; color:var(--stone); line-height:1.7;}
+  .v-meta a{color:var(--pine);}
+  .v-redirect{font-size:13px; margin-top:8px; color:var(--pine);}
+  /* Soul cards */
+  .soul{border-radius:9px; padding:12px 14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:5px solid var(--line);}
+  .soul.legal{border-left-color:var(--blaze);}
+  .soul.steward{border-left-color:var(--pine);}
+  .soul .tag{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--stone); margin-bottom:4px;}
+  .soul.legal .tag{color:var(--blaze);} .soul.steward .tag{color:var(--pine);}
+  .soul p{font-size:13px;}
+  .soul .src{font-size:11px; color:var(--stone); margin-top:4px;}
+  .soul .src a{color:var(--pine);}
+  .nearby{font-size:12.5px; color:var(--stone); line-height:1.7;}
+  .nearby b{color:var(--ink); font-weight:600;}
+  h3.sec{font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--stone); margin:18px 0 8px; font-weight:600;}
+  details{margin-top:14px; font-size:12px; color:var(--stone);}
+  summary{cursor:pointer; color:var(--pine);}
+  .rawfeat{background:var(--paper); border-radius:7px; padding:8px 10px; margin:8px 0; word-break:break-word;}
+  .warnline{color:var(--clay); font-size:12.5px; margin-bottom:8px;}
+  .placeline{font-size:12.5px; color:var(--stone); margin-bottom:8px;}
+  .placeline b{color:var(--ink); font-weight:600;}
+  footer{color:var(--stone); font-size:11.5px; margin-top:20px; line-height:1.7;}
+  footer a{color:var(--pine);}
+  .loading{color:var(--stone); font-size:13px; padding:8px 0;}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Varda · prototype 001 · first heartbeat</div>
+  <h1>Can I do this here? <small>Ask the ground.</small></h1>
+</header>
+
+<div class="card">
+  <label class="small">Where you are</label>
+  <button class="btn ghost" id="gpsBtn">Use my location</button>
+  <div class="coords">
+    <input id="lat" inputmode="decimal" placeholder="Latitude" aria-label="Latitude" value="45.3796">
+    <input id="lng" inputmode="decimal" placeholder="Longitude" aria-label="Longitude" value="-122.0300">
+  </div>
+  <div class="chips">
+    <button class="chiplet" data-lat="45.3796" data-lng="-122.0300">Sandy Ridge</button>
+    <button class="chiplet" data-lat="44.6039" data-lng="-123.3325">Oak Creek</button>
+    <button class="chiplet" data-lat="48.4755" data-lng="-121.0754">Cascade Pass</button>
+  </div>
+
+  <label class="small" style="margin-top:12px;">What you want to do</label>
+  <div class="seg" role="group" aria-label="Activity">
+    <button data-act="access" aria-pressed="true">Be here</button>
+    <button data-act="bike" aria-pressed="false">Ride a bike</button>
+    <button data-act="drive" aria-pressed="false">Drive</button>
+  </div>
+
+  <button class="btn" id="askBtn">Ask</button>
+</div>
+
+<div id="result"></div>
+
+<footer>
+  Land status from the USGS <a href="https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview">Protected Areas Database</a>. Place names from the <a href="https://www.openstreetmap.org/">OpenStreetMap</a> community. Trail and road data from the US Forest Service <a href="https://data-usfs.hub.arcgis.com/">Enterprise Data Warehouse</a>. Rule summaries are hand-maintained and dated; each links its source. Varda informs; it never claims authority over the ground. Always confirm rules and conditions locally — the land’s own stewards know it best.
+</footer>
+
+<script>
+/* ================= endpoints & helpers ================= */
+const PADUS  = 'https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Manager_Name/FeatureServer/0/query';
+const TRAILS = 'https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_TrailNFSPublish_01/MapServer/0/query';
+const MVUM   = 'https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query';
+
+function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML;}
+function attr(a,key){ if(!a) return undefined; const lk=key.toLowerCase();
+  for(const k of Object.keys(a)){ if(k.toLowerCase()===lk) return a[k]; } return undefined; }
+
+async function q(url, params){
+  const u = url + '?' + new URLSearchParams({f:'json', returnGeometry:'false', outFields:'*', ...params});
+  const r = await fetch(u);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const j = await r.json();
+  if(j.error) throw new Error(j.error.message||'server error');
+  return j.features||[];
+}
+function ptParams(lat,lng,meters){
+  const p = {
+    geometry: JSON.stringify({x:+lng,y:+lat,spatialReference:{wkid:4326}}),
+    geometryType:'esriGeometryPoint', inSR:'4326', spatialRel:'esriSpatialRelIntersects'
+  };
+  if(meters) { p.distance=String(meters); p.units='esriSRUnit_Meter'; }
+  return p;
+}
+
+/* Resolve the pin to a human place name so a bad fix announces itself.
+   Enrichment: silent on failure, never blocks the verdict. */
+async function placeName(lat,lng){
+  try{
+    const r = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lng));
+    if(!r.ok) return null;
+    const j = await r.json();
+    if(!j || !j.display_name) return null;
+    return j.display_name.split(',').slice(0,3).join(',').trim();
+  }catch(e){ return null; }
+}
+
+/* ================= context from PAD-US ================= */
+function buildCtx(pointFeats, nearFeats){
+  const ctx={ mang:new Set(), own:new Set(), des:new Set(), units:[], nearUnits:[], empty:pointFeats.length===0 };
+  const eat=(f,into)=>{ const a=f.attributes||{};
+    const u={ name:attr(a,'Unit_Nm')||'', locMang:attr(a,'Loc_Mang')||'', locOwn:attr(a,'Loc_Own')||'',
+              locDs:attr(a,'Loc_Ds')||'', des:attr(a,'Des_Tp')||'', mang:attr(a,'Mang_Name')||'', pub:attr(a,'Pub_Access')||'',
+              fee:String(attr(a,'FeatClass')||attr(a,'Category')||'').toUpperCase()==='FEE' };
+    into.push(u); return u; };
+  for(const f of pointFeats){ const u=eat(f,ctx.units);
+    if(u.mang) ctx.mang.add(u.mang.toUpperCase());
+    if(u.des) ctx.des.add(u.des.toUpperCase());
+    const ow=(attr(f.attributes,'Own_Name')||'').toUpperCase(); if(ow) ctx.own.add(ow); }
+  for(const f of nearFeats){ eat(f,ctx.nearUnits); }
+  const txt = s => ctx.units.some(u => (u.name+' '+u.locMang+' '+u.locOwn+' '+u.locDs).toUpperCase().includes(s.toUpperCase()));
+  ctx.is = {
+    wilderness: ctx.des.has('WA') || txt('WILDERNESS'),
+    nps: ctx.mang.has('NPS'),
+    blm: ctx.mang.has('BLM'),
+    usfs: ctx.mang.has('USFS'),
+    statePark: txt('STATE PARK') || ctx.des.has('SP') || txt('PARKS AND RECREATION'),
+    mcdonald: txt('MCDONALD-DUNN') || txt('OREGON STATE UNIVERSITY'),
+    willamette: txt('WILLAMETTE NATIONAL FOREST') || txt('WILLAMETTE'),
+    deschutes: txt('DESCHUTES'),
+    giffordPinchot: txt('GIFFORD PINCHOT'),
+    acec: ctx.des.has('ACEC') || txt('CRITICAL ENVIRONMENTAL')
+  };
+  ctx.wildernessNearby = !ctx.is.wilderness &&
+    ctx.nearUnits.some(u => u.des==='WA' || (u.name+u.locDs).toUpperCase().includes('WILDERNESS'));
+  /* Public access, straight from PAD-US. Prefer the ownership (Fee) record —
+     designations stacked on top carry their own, often stricter, codes. */
+  const codes = ctx.units.map(u=>(u.pub||'').toUpperCase()).filter(Boolean);
+  const feeUnit = ctx.units.find(u=>u.fee && u.pub);
+  ctx.access = {
+    code: ((feeUnit && feeUnit.pub) || codes[0] || '').toUpperCase(),
+    anyClosed: codes.includes('XA'),
+    codes: [...new Set(codes)]
+  };
+  /* The stack is the answer: ownership names the manager, designations ride on top. */
+  ctx.primary = ctx.units.find(u=>u.fee && u.name) || ctx.units.find(u=>u.name) || ctx.units[0] || null;
+  ctx.designations = [...new Set(ctx.units.filter(u=>!u.fee && u.name).map(u=>u.name))];
+  return ctx;
+}
+
+/* ================= the rules table =================
+   Prototype note: rules live here as objects with predicate functions.
+   In real Varda this becomes an external JSON file with declarative
+   matchers, so a ranger phone call updates one line of data, not code. */
+const CFR = p => 'https://www.ecfr.gov/current/title-'+p;
+const RULES = [
+ /* ---- hard no's, checked first ---- */
+ { act:'bike', when:c=>c.is.wilderness, v:'no', conf:'verified', hard:true,
+   head:'Not here — this is designated Wilderness',
+   why:'Bicycles and all mechanized travel are prohibited in every federal Wilderness area. The trail is open to your feet, not your wheels.',
+   src:{n:'36 CFR 261.18',u:CFR('36/section-261.18')}, ver:'2026-07',
+   redirect:'Non-wilderness trails nearby often ride beautifully — check the surrounding forest’s trail pages.' },
+ { act:'bike', when:c=>c.is.nps, v:'no', conf:'hedged', hard:true,
+   head:'Not on trails here — national park',
+   why:'In national parks, bikes are generally limited to park roads and specifically designated routes; trails are closed to them unless a park rule says otherwise.',
+   src:{n:'36 CFR 4.30',u:CFR('36/section-4.30')}, ver:'2026-07',
+   redirect:'Park roads are usually open to riding — the park’s own site lists any designated bike routes.' },
+ { act:'drive', when:c=>c.is.wilderness, v:'no', conf:'verified', hard:true,
+   head:'Not here — this is designated Wilderness',
+   why:'No motor vehicles and no roads in designated Wilderness. Where the Wilderness begins, the driving ends.',
+   src:{n:'Wilderness Act · 36 CFR 261.18',u:CFR('36/section-261.18')}, ver:'2026-07' },
+ { act:'drive', when:c=>c.is.nps, v:'cond', conf:'hedged', hard:true,
+   head:'Park roads only',
+   why:'In national parks, motor vehicles stay on park roads open to the public. Off-road travel is prohibited.',
+   src:{n:'36 CFR 4.10',u:CFR('36/section-4.10')}, ver:'2026-07' },
+
+ /* ---- access: can I be here? ---- */
+ { act:'access', when:c=>c.access.anyClosed, v:'no', conf:'hedged', hard:true,
+   head:'Recorded as closed to public entry',
+   why:'PAD-US records this parcel’s public access as closed — often a conservancy holding, a research site, or a utility parcel. Closed on the map means ask first, not find a way around the edge.',
+   src:{n:'USGS PAD-US',u:'https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview'}, ver:'2026-07',
+   redirect:'Open public ground is often a few hundred metres away — see the nearby ground below.' },
+ { act:'access', when:c=>c.is.mcdonald, v:'cond', conf:'hedged', hand:true,
+   head:'Welcome, on the forest’s terms',
+   why:'McDonald-Dunn is Oregon State University’s working research forest, open for public day use on its designated roads and trails. Areas close during active research and timber operations, and the posted hours and gates are the rule.',
+   src:{n:'OSU College Forests',u:'https://cf.forestry.oregonstate.edu/'}, ver:'2026-07',
+   closures:{n:'OSU forest closures',u:'https://cf.forestry.oregonstate.edu/'} },
+ { act:'access', when:c=>c.is.wilderness, v:'cond', conf:'hedged',
+   head:'Open on foot — permits often apply',
+   why:'Designated Wilderness is open to visitors, but many units require a permit, cap group size, and limit entry by quota in season. The managing forest or park issues them.',
+   src:{n:'Wilderness Act of 1964',u:'https://www.wilderness.net/learn-about-wilderness/key-laws/wilderness-act/default.php'}, ver:'2026-07' },
+ { act:'access', when:c=>c.is.nps, v:'cond', conf:'hedged',
+   head:'Open — park entrance rules apply',
+   why:'National parks are open to visitors under the park’s own hours, fees, and any timed-entry or permit systems. The park’s own site carries what is in force right now.',
+   src:{n:'National Park Service',u:'https://www.nps.gov/'}, ver:'2026-07' },
+ { act:'access', when:c=>c.access.code==='RA', v:'cond', conf:'hedged',
+   head:'Access here is recorded as restricted',
+   why:'PAD-US flags this ground as restricted access — entry may need a permit, be open only in certain seasons, or be limited to particular uses. The manager below holds the terms.',
+   src:{n:'USGS PAD-US',u:'https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview'}, ver:'2026-07' },
+ { act:'access', when:c=>c.is.blm, v:'yes', conf:'hedged',
+   head:'Generally open — BLM land',
+   why:'BLM ground is broadly open to public entry unless posted or gated otherwise. Getting to it is the separate question — a public boundary is not a promise of a legal way in.',
+   src:{n:'BLM recreation',u:'https://www.blm.gov/programs/recreation'}, ver:'2026-07' },
+ { act:'access', when:c=>c.is.usfs, v:'yes', conf:'hedged',
+   head:'Generally open — National Forest',
+   why:'National forests are open to public entry unless a closure order says otherwise. Fire, storm, and operational closures are common in season and live only in forest orders, never in map data.',
+   src:{n:'USDA Forest Service',u:'https://www.fs.usda.gov/'}, ver:'2026-07' },
+ { act:'access', when:c=>c.is.statePark, v:'yes', conf:'hedged',
+   head:'Open during posted hours — Oregon State Parks',
+   why:'State parks are open to the public during posted hours. Some charge a day-use parking fee, and staying overnight outside a campground generally isn’t allowed.',
+   src:{n:'Oregon State Parks',u:'https://stateparks.oregon.gov/'}, ver:'2026-07' },
+
+ /* ---- specific units before generic managers ---- */
+ { act:'bike', when:c=>c.is.mcdonald, v:'cond', conf:'hedged', hand:true,
+   head:'Yes, with the forest’s house rules',
+   why:'McDonald-Dunn is Oregon State University’s working research forest. Bikes are welcome on designated roads and trails, dawn to dusk. E-bikes are prohibited, and areas close during active research and timber operations.',
+   src:{n:'OSU College Forests',u:'https://cf.forestry.oregonstate.edu/'}, ver:'2026-07',
+   closures:{n:'OSU forest closures',u:'https://cf.forestry.oregonstate.edu/'} },
+
+ /* ---- generic managers ---- */
+ { act:'bike', when:c=>c.is.blm, v:'yes', conf:'hedged',
+   head:'Generally yes on BLM land',
+   why:'BLM lands are broadly open to bicycles on existing roads and trails unless a travel plan or posting says otherwise. Purpose-built systems like Sandy Ridge welcome bikes outright.',
+   src:{n:'BLM travel management',u:'https://www.blm.gov/programs/recreation'}, ver:'2026-07' },
+ { act:'bike', when:c=>c.is.statePark, v:'cond', conf:'hedged',
+   head:'On designated trails — Oregon State Parks',
+   why:'Bikes ride on trails designated for them, and since 2025 e-bikes may go wherever bikes may, unless a specific trail is posted otherwise.',
+   src:{n:'Oregon State Parks e-bike rules',u:'https://stateparks.oregon.gov/index.cfm?do=v.page&id=131'}, ver:'2026-07' },
+ { act:'bike', when:c=>c.is.usfs, v:'unknown', conf:'hedged',
+   head:'No trail record at this spot',
+   why:'You’re on Forest Service land, but no trail with bike attributes shows in the federal data here. No recorded restriction is not the same as permission — the ranger district knows.',
+   src:{n:'USFS trails data',u:'https://data-usfs.hub.arcgis.com/'}, ver:'2026-07' },
+ { act:'drive', when:c=>c.is.usfs, v:'no', conf:'verified',
+   head:'No designated route here — so not by vehicle',
+   why:'On National Forest land, motor vehicles are legal only on routes designated in the Motor Vehicle Use Map. No designated route at this spot means motorized travel isn’t authorized — unless you’re on a state, county, or private road inside the boundary, which follows its own rules.',
+   src:{n:'36 CFR 261.13',u:CFR('36/section-261.13')}, ver:'2026-07' },
+ { act:'drive', when:c=>c.is.blm, v:'cond', conf:'hedged',
+   head:'Designated and existing routes only',
+   why:'BLM travel rules keep vehicles to designated or existing routes, which vary by field office plan. The local office’s travel map is the authority.',
+   src:{n:'BLM travel management',u:'https://www.blm.gov/programs/recreation'}, ver:'2026-07' },
+
+ /* ---- fall-throughs ---- */
+ { act:'any', when:c=>c.empty, v:'unknown', conf:'none',
+   head:'Likely private or unlisted land',
+   why:'No public land unit is recorded at this spot. That usually means private ground — and everything here, from access onward, needs the landowner’s permission.',
+   src:{n:'USGS PAD-US',u:'https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview'}, ver:'2026-07' },
+ { act:'any', when:()=>true, v:'unknown', conf:'none',
+   head:'We don’t have a verified answer here',
+   why:'The land manager below is recorded, but we don’t yet carry a verified rule for this activity on this ground. The manager’s office will know.',
+   src:{n:'USGS PAD-US',u:'https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview'}, ver:'2026-07' }
+];
+
+/* ================= soul cards ================= */
+const STEWARD = [
+ { when:(c,a)=>c.is.mcdonald, text:'This is a working research forest — study plots, log trucks, and students share these roads. Yield wide, stay on the designated routes, and leave the flagging and instruments exactly where science put them.' },
+ { when:(c,a)=>c.is.wilderness||c.wildernessNearby, text:'You’re on the edge of land protected to stay untamed. Travel quietly, keep to durable ground, and let it be wilder for your passing through.' },
+ { when:(c,a)=>a==='bike', text:'Wet trail? Ride through the puddle, not around it — riding around widens the trail with every pass. If you’re leaving ruts, the trail is asking you to come back another day.' },
+ { when:(c,a)=>a==='access', text:'Park so the next rig can still get by and the gate can still swing. Leave gates as you found them, walk the ground that’s already been walked, and keep it quiet enough that the place sounds like itself.' },
+ { when:(c,a)=>a==='drive', text:'Soft spring roads remember every tire. If the road is pulling at your wheels, it isn’t ready for you yet — the ruts you skip today are the grading crews you spare in July.' },
+ { when:()=>true, text:'You’re a guest on this ground. Move gently, pack out what you brought, and leave the place better for your visit.' }
+];
+const LEGAL = [
+ { when:(c,a)=>a==='bike'&&(c.is.usfs||c.is.blm), h:'E-bikes are a different animal here',
+   text:'On federal land, an e-bike legally counts as a motor vehicle — allowed only on motorized routes. In Oregon State Parks the rule flips: e-bikes ride wherever bikes do. Same machine, opposite rules, sometimes a mile apart.',
+   src:{n:'USFS e-bike policy',u:'https://www.fs.usda.gov/managing-land/trails/e-bikes'} },
+ { when:(c,a)=>a==='bike'&&c.wildernessNearby, h:'Wilderness boundary nearby',
+   text:'Designated Wilderness sits within a couple of kilometers of you, and bikes must turn back at its boundary — the line is legal, not just a sign.',
+   src:{n:'36 CFR 261.18',u:CFR('36/section-261.18')} },
+ { when:(c,a)=>a==='access'&&(c.is.usfs||c.is.blm), h:'Public land, private way in',
+   text:'A public boundary on the map is not a promise of a legal route to it. Roads and driveways crossing private ground stay private, and some public parcels have no public way in at all. The manager’s office knows which.',
+   src:{n:'BLM recreation',u:'https://www.blm.gov/programs/recreation'} },
+ { when:(c,a)=>a==='access'&&c.is.usfs, h:'Many trailheads want a pass',
+   text:'Across Oregon and Washington a lot of Forest Service trailheads ask for a Northwest Forest Pass or an interagency pass on the windshield. The sign at the lot is the authority.',
+   src:{n:'Recreation.gov',u:'https://www.recreation.gov/'} },
+ { when:(c,a)=>c.is.acec, h:'Area of Critical Environmental Concern',
+   text:'Part of this ground carries an ACEC designation — the BLM’s flag for fragile or irreplaceable values. Rules on off-trail travel and disturbance tighten here; treat it as the sensitive place it is.',
+   src:{n:'BLM ACECs',u:'https://www.blm.gov/programs/planning-and-nepa/planning-101/special-planning-designations/acecs'} }
+];
+
+/* ================= live-data verdicts ================= */
+function bikeFromTrail(tf){
+  const a = tf.attributes||{};
+  const name = attr(a,'TRAIL_NAME')||'this trail';
+  if(attr(a,'BICYCLE_RESTRICTED')) return { v:'no', conf:'verified',
+    head:'Not on '+name, why:'Forest Service data records a bicycle restriction on this trail ('+esc(attr(a,'BICYCLE_RESTRICTED'))+').',
+    src:{n:'USFS trails data',u:'https://data-usfs.hub.arcgis.com/'}, ver:'live' };
+  const mng = attr(a,'BICYCLE_MANAGED')||attr(a,'BICYCLE_ACCPT');
+  if(mng) return { v:'yes', conf:'hedged',
+    head:'Yes — '+name+' is managed for bikes', why:'Designated for bicycles per Forest Service data ('+esc(mng)+'). Signs on the ground can be newer than the database — if a sign disagrees, the sign wins.',
+    src:{n:'USFS trails data',u:'https://data-usfs.hub.arcgis.com/'}, ver:'live' };
+  return null; /* trail present, silent on bikes → fall to table */
+}
+function driveFromRoad(rf){
+  const a = rf.attributes||{};
+  const name = attr(a,'NAME')||('road '+(attr(a,'ID')||''));
+  const season = attr(a,'SEASONAL'); const pv = attr(a,'PASSENGERVEHICLE');
+  const dates = attr(a,'PASSENGERVEHICLE_DATESOPEN');
+  const sym = attr(a,'MVUM_SYMBOL_NAME')||attr(a,'SYMBOL_NAME')||'';
+  const maint = String(attr(a,'OPERATIONALMAINTLEVEL')||'');
+  const bits=[]; if(sym) bits.push(sym); if(season) bits.push('season: '+season);
+  if(pv) bits.push('passenger vehicles '+pv+(dates?' ('+dates+')':''));
+  const out = { v:'yes', conf:'verified',
+    head:'Yes — '+name+' is a designated route',
+    why:'This road is on the Motor Vehicle Use Map, the legal document for motorized travel. '+esc(bits.join(' · '))+'.',
+    src:{n:'USFS MVUM data',u:'https://data-usfs.hub.arcgis.com/'}, ver:'live', extras:[] };
+  if(season && season.toLowerCase()!=='yearlong')
+    out.extras.push({h:'Seasonal road', text:'This route is open '+esc(season)+' — outside those dates the designation closes, snow or shine.', src:{n:'MVUM',u:'https://data-usfs.hub.arcgis.com/'}});
+  if(maint.includes('2'))
+    out.extras.push({h:'Legal isn’t the same as drivable', text:'This road is maintained for high-clearance vehicles. A sedan may lawfully enter — and promptly regret it.', src:{n:'MVUM',u:'https://data-usfs.hub.arcgis.com/'}});
+  return out;
+}
+
+/* ================= verdict engine ================= */
+function decide(act, ctx, live){
+  /* 1: hard designation no's are just the first table rows — order does the work */
+  for(const r of RULES){
+    if(r.act!==act && r.act!=='any') continue;
+    /* live data slots in between hard no's and manager defaults: */
+    if(!r.when(ctx)) continue;
+    if(r.hard) return r;   /* hard designation no's outrank everything, including live data */
+    if(live) return live;      /* 2: live activity data wins over generic rows */
+    return r;                  /* 3: table row */
+  }
+  return RULES[RULES.length-1];
+}
+
+/* ================= rendering ================= */
+const CONF_LINE = {
+  verified:'Verified rule — authoritative source linked below.',
+  hedged:'General rule, hedged on purpose — local postings and newer orders can override it.',
+  none:'No verified rule — treat the contact below as the answer.'
+};
+function confDateLine(r){
+  if(r.ver==='live') return 'From live government data at query time.';
+  return (r.hand?'Hand-verified row · ':'Rule row · ')+'last checked '+r.ver+'.';
+}
+function verdictClass(v){ return v==='yes'?'v-yes':v==='cond'?'v-cond':v==='no'?'v-no':'v-unknown'; }
+
+function render(act, ctx, rule, notes, warnings, rawSets, place){
+  const out = document.getElementById('result');
+  const isCode = v => !v || /^[A-Z]{2}\s?N?\d+$/.test(String(v).trim()) || String(v).trim().length<4;
+  const mgr = ctx.primary ? esc(ctx.primary.name || ctx.primary.locMang || ctx.primary.mang) : 'No public unit recorded';
+  const office = ctx.primary && !isCode(ctx.primary.locMang) && ctx.primary.locMang!==ctx.primary.name ? ' · '+esc(ctx.primary.locMang) : '';
+  const desLine = (ctx.designations && ctx.designations.length)
+    ? '<br>Designations here: <b>'+ctx.designations.map(esc).join('</b> · <b>')+'</b>' : '';
+  const mgrLine = (ctx.primary ? ('Managed by: <b>'+mgr+'</b>'+office) : '<b>'+mgr+'</b>') + desLine;
+
+  let html = '';
+  if(place) html += '<div class="placeline">Asking about ground near <b>'+esc(place)+'</b> — if that isn’t where you meant, fix the pin before trusting the answer.</div>';
+  for(const w of warnings) html += '<div class="warnline">'+esc(w)+'</div>';
+
+  html += '<div class="card verdict-card '+verdictClass(rule.v)+'">'
+    + '<div class="v-head"><span class="v-diamond"></span><h2>'+esc(rule.head)+'</h2></div>'
+    + '<div class="v-why">'+rule.why+'</div>'
+    + (rule.contact? '<div class="v-why"><b>'+esc(rule.contact)+'</b></div>':'')
+    + (rule.redirect? '<div class="v-redirect">'+esc(rule.redirect)+'</div>':'')
+    + notes.map(n=>'<div class="v-redirect">'+esc(n)+'</div>').join('')
+    + '<div class="v-meta">'+mgrLine+'<br>'
+    + esc(CONF_LINE[rule.conf]||'')+'<br>'
+    + esc(confDateLine(rule))+' Source: <a href="'+rule.src.u+'">'+esc(rule.src.n)+'</a>'
+    + (rule.closures? ' · <a href="'+rule.closures.u+'">'+esc(rule.closures.n)+'</a>':'')
+    + '</div></div>';
+
+  /* soul cards: one stewardship + up to two legal */
+  const steward = STEWARD.find(s=>s.when(ctx,act));
+  const legal = [];
+  if(rule.extras) for(const e of rule.extras) legal.push(e);
+  for(const l of LEGAL){ if(legal.length>=2) break; if(l.when(ctx,act)) legal.push(l); }
+
+  html += '<h3 class="sec">Worth knowing here</h3>';
+  for(const l of legal.slice(0,2))
+    html += '<div class="soul legal"><div class="tag">'+esc(l.h||'Heads up')+'</div><p>'+esc(l.text)+'</p>'
+      + (l.src?'<div class="src"><a href="'+l.src.u+'">'+esc(l.src.n)+'</a></div>':'')+'</div>';
+  if(steward)
+    html += '<div class="soul steward"><div class="tag">Treading well</div><p>'+esc(steward.text)+'</p>'
+      + '<div class="src">In the spirit of <a href="https://lnt.org/why/7-principles/">Leave No Trace</a></div></div>';
+
+  /* nearby */
+  const seen = new Set(ctx.units.map(u=>u.name));
+  const near = [...new Set(ctx.nearUnits.map(u=>u.name).filter(n=>n&&!seen.has(n)))].slice(0,4);
+  if(near.length){
+    html += '<h3 class="sec">Nearby ground</h3><div class="card nearby">'
+      + near.map(n=>'<b>'+esc(n)+'</b>').join(' · ')
+      + '<br>Different ground, different rules — the boundary matters.</div>';
+  }
+
+  /* transparency */
+  html += '<details><summary>What the servers said</summary>';
+  for(const [title,feats] of rawSets){
+    html += '<div class="rawfeat"><b>'+esc(title)+':</b> '+(feats.length? feats.length+' feature(s): '
+      + feats.slice(0,6).map(f=>esc(attr(f.attributes,'Unit_Nm')||attr(f.attributes,'TRAIL_NAME')||attr(f.attributes,'NAME')||'unnamed')).join('; ')
+      : 'nothing returned — an answer, not an error')+'</div>';
+  }
+  html += '</details>';
+  out.innerHTML = html;
+}
+
+/* ================= main flow ================= */
+let activity = 'access';
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); activity=b.dataset.act;
+}));
+document.querySelectorAll('.chiplet').forEach(c=>c.addEventListener('click',()=>{
+  document.getElementById('lat').value=c.dataset.lat;
+  document.getElementById('lng').value=c.dataset.lng;
+}));
+document.getElementById('gpsBtn').addEventListener('click',()=>{
+  if(!navigator.geolocation){ alert('No location service available — enter coordinates by hand.'); return; }
+  navigator.geolocation.getCurrentPosition(
+    p=>{ document.getElementById('lat').value=p.coords.latitude.toFixed(5);
+         document.getElementById('lng').value=p.coords.longitude.toFixed(5); },
+    ()=>alert('Couldn’t get a fix — enter coordinates by hand.'), {enableHighAccuracy:true,timeout:10000});
+});
+
+document.getElementById('askBtn').addEventListener('click', async ()=>{
+  const btn=document.getElementById('askBtn'), out=document.getElementById('result');
+  const lat=document.getElementById('lat').value.trim(), lng=document.getElementById('lng').value.trim();
+  if(!lat||!lng){ out.innerHTML='<div class="card">Enter a location first — coordinates or the location button.</div>'; return; }
+  btn.disabled=true; btn.textContent='Asking the ground…';
+  out.innerHTML='<div class="loading">Checking who manages this ground…</div>';
+  const warnings=[]; const rawSets=[];
+  const placeP = placeName(lat,lng);
+
+  /* core: PAD-US at the point (loud on failure) and nearby (silent) */
+  let ptFeats=[], nearFeats=[], matchDist=0;
+  try {
+    ptFeats = await q(PADUS, ptParams(lat,lng,0));
+    if(!ptFeats.length){ ptFeats = await q(PADUS, ptParams(lat,lng,150)); if(ptFeats.length) matchDist=150; }
+    if(!ptFeats.length){ ptFeats = await q(PADUS, ptParams(lat,lng,500)); if(ptFeats.length) matchDist=500; }
+  }
+  catch(e){
+    out.innerHTML='<div class="card">Couldn’t reach the land database — check your signal and try again.</div>';
+    btn.disabled=false; btn.textContent='Ask'; return;
+  }
+  try { nearFeats = await q(PADUS, ptParams(lat,lng,2000)); } catch(e){ /* silent */ }
+  rawSets.push(['Managers at this point', ptFeats]);
+  const ctx = buildCtx(ptFeats, nearFeats);
+
+  /* enrichment: activity data (silent-ish; note failure, never block) */
+  let live=null;
+  if(activity==='bike' && !ctx.is.wilderness && !ctx.is.nps){
+    try {
+      const tf = await q(TRAILS, ptParams(lat,lng,250));
+      rawSets.push(['Forest Service trails within 250 m', tf]);
+      if(tf.length) live = bikeFromTrail(tf[0]);
+    } catch(e){ warnings.push('Couldn’t reach Forest Service trail data — verdict below rests on the land manager’s general rule.'); }
+  }
+  if(activity==='drive' && !ctx.is.wilderness){
+    try {
+      const rf = await q(MVUM, ptParams(lat,lng,150));
+      rawSets.push(['MVUM roads within 150 m', rf]);
+      if(rf.length) live = driveFromRoad(rf[0]);
+    } catch(e){ warnings.push('Couldn’t reach the Motor Vehicle Use Map data — verdict below rests on the land manager’s general rule.'); }
+  }
+
+  const rule = decide(activity, ctx, live);
+  const notes=[];
+  if(matchDist) notes.push('Your pin sits just off the mapped boundary — this verdict comes from public land within about '+matchDist+' m. On the ground, trust the signs for exactly where the line runs.');
+  if(activity==='access' && ctx.access.code){
+    const label = {OA:'open',RA:'restricted',XA:'closed',UK:'unknown'}[ctx.access.code];
+    if(label) notes.push('PAD-US records public access on this parcel as ' + label + ' (' + ctx.access.code + '). These codes are coarse and can be years old — the gate and the sign are the ground truth.');
+  }
+  if(ctx.empty){
+    const open = ctx.nearUnits.filter(u => u.name
+      && u.pub !== 'XA'
+      && !((u.name+' '+u.locDs).toUpperCase().includes('PRIVATELY')));
+    const pick = open.find(u => ['USFS','BLM','NPS','FWS','SLB'].includes((u.mang||'').toUpperCase())) || open[0];
+    if(pick) notes.push('But open public ground is close: '+pick.name+' lies within 2 km. Standing at a trailhead or pullout? The trails themselves may be on that land — nudge the pin onto them and ask again.');
+  }
+  const place = await placeP;
+  render(activity, ctx, rule, notes, warnings, rawSets, place);
+  btn.disabled=false; btn.textContent='Ask again';
+});
+</script>
+</body>
+</html>
