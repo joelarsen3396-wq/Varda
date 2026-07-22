@@ -17,7 +17,7 @@
     font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
     font-size:14px; line-height:1.5; padding:20px 16px 48px; max-width:640px; margin:0 auto;
   }
-  h1,h2,h3,.btn,.seg button,.chiplet{font-family:'Barlow Condensed',system-ui,sans-serif;}
+  h1,h2,h3,.btn,.seg button{font-family:'Barlow Condensed',system-ui,sans-serif;}
   header{margin-bottom:20px;}
   .eyebrow{color:var(--stone); font-size:11px; letter-spacing:.14em; text-transform:uppercase;}
   h1{font-size:34px; font-weight:700; line-height:1.1; margin-top:4px;}
@@ -25,6 +25,16 @@
   .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 16px; margin-bottom:16px;}
   label.small{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--stone); display:block; margin-bottom:6px;}
   .coords{display:flex; gap:8px; margin-bottom:10px;}
+  .locnote{font-size:12.5px; color:var(--stone); margin:8px 0 2px;}
+  .linkbtn{background:none; border:none; padding:0; font:inherit; font-size:12.5px; color:var(--pine); text-decoration:underline; cursor:pointer;}
+  .searchrow{display:flex; gap:8px; margin:10px 0 4px;}
+  .searchrow input{flex:1; min-width:0; font:inherit; font-size:14px; padding:10px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink);}
+  .btn.small{width:auto; padding:10px 16px; font-size:15px;}
+  .hit{display:block; width:100%; text-align:left; background:var(--paper); border:1px solid var(--line); border-radius:7px; padding:9px 11px; margin-top:6px; font:inherit; font-size:13px; color:var(--ink); cursor:pointer;}
+  .hit b{display:block; font-size:14px;}
+  .hit span{color:var(--stone); font-size:12px;}
+  .chosen{font-size:13px; color:var(--ink); background:var(--paper); border-radius:7px; padding:9px 11px; margin-top:10px;}
+  .chosen b{font-weight:700;}
   .coords input{flex:1; min-width:0; font:inherit; font-size:13px; padding:9px 10px; border:1px solid var(--line); border-radius:7px; background:var(--paper);}
   .coords input:focus{outline:2px solid var(--pine); outline-offset:1px;}
   .btn{display:block; width:100%; padding:13px; font-size:18px; font-weight:600; letter-spacing:.03em; color:#fff; background:var(--pine); border:none; border-radius:8px; cursor:pointer; -webkit-tap-highlight-color:transparent;}
@@ -32,9 +42,6 @@
   .btn:focus-visible{outline:3px solid var(--blaze); outline-offset:2px;}
   .btn[disabled]{background:var(--stone); cursor:wait;}
   .btn.ghost{background:var(--paper); color:var(--pine); border:1px solid var(--pine); font-size:15px; padding:10px; margin-bottom:10px;}
-  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;}
-  .chiplet{font-size:13px; font-weight:600; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--stone); cursor:pointer;}
-  .chiplet:active{border-color:var(--pine); color:var(--pine);}
   .seg{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
   .seg button{min-width:calc(50% - 3px);}
   .splist{margin-top:10px;}
@@ -86,24 +93,30 @@
 </head>
 <body>
 <header>
-  <div class="eyebrow">Varda · prototype 001 · first heartbeat</div>
+  <div class="eyebrow">Varda</div>
   <h1>Can I do this here? <small>Ask the ground.</small></h1>
 </header>
 
 <div class="card">
   <label class="small">Where you are</label>
   <button class="btn ghost" id="gpsBtn">Use my location</button>
-  <div class="coords">
-    <input id="lat" inputmode="decimal" placeholder="Latitude" aria-label="Latitude" value="45.3796">
-    <input id="lng" inputmode="decimal" placeholder="Longitude" aria-label="Longitude" value="-122.0300">
+  <div class="locnote" id="locnote">Or <button class="linkbtn" id="elsewhereBtn">look somewhere else</button> — plan tomorrow from the couch.</div>
+
+  <div id="elsewhere" hidden>
+    <div class="searchrow">
+      <input id="q" type="search" placeholder="Trailhead, road, park…" aria-label="Search for a place" enterkeyhint="search">
+      <button class="btn small" id="searchBtn">Find</button>
+    </div>
+    <div id="results"></div>
+    <div class="locnote"><button class="linkbtn" id="coordBtn">Enter coordinates instead</button></div>
+    <div id="coordbox" hidden>
+      <div class="coords">
+        <input id="lat" inputmode="decimal" placeholder="Latitude" aria-label="Latitude">
+        <input id="lng" inputmode="decimal" placeholder="Longitude" aria-label="Longitude">
+      </div>
+    </div>
   </div>
-  <div class="small" style="margin:10px 0 4px;">Or jump to a test spot</div>
-  <div class="chips">
-    <button class="chiplet" data-lat="45.3796" data-lng="-122.0300">Sandy Ridge</button>
-    <button class="chiplet" data-lat="44.6039" data-lng="-123.3325">Oak Creek</button>
-    <button class="chiplet" data-lat="48.4755" data-lng="-121.0754">Cascade Pass</button>
-    <button class="chiplet" data-lat="44.4070" data-lng="-123.3089">Finley Refuge</button>
-  </div>
+  <div id="chosen" class="chosen" hidden></div>
 
   <label class="small" style="margin-top:12px;">What you want to do</label>
   <div class="seg" role="group" aria-label="Activity">
@@ -610,22 +623,63 @@ document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',(
   document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed','false'));
   b.setAttribute('aria-pressed','true'); activity=b.dataset.act;
 }));
-document.querySelectorAll('.chiplet').forEach(c=>c.addEventListener('click',()=>{
-  document.getElementById('lat').value=c.dataset.lat;
-  document.getElementById('lng').value=c.dataset.lng;
-}));
+/* ---- looking somewhere else: search by name, same OSM service as place names ---- */
+const $ = id => document.getElementById(id);
+function setPin(lat, lng, label){
+  $('lat').value = (+lat).toFixed(5);
+  $('lng').value = (+lng).toFixed(5);
+  if(label){ $('chosen').innerHTML = 'Asking about <b>'+esc(label)+'</b>'; $('chosen').hidden = false; }
+  else { $('chosen').hidden = true; }
+}
+$('elsewhereBtn').addEventListener('click', ()=>{
+  const box = $('elsewhere');
+  box.hidden = !box.hidden;
+  if(!box.hidden) $('q').focus();
+});
+$('coordBtn').addEventListener('click', ()=>{ const b=$('coordbox'); b.hidden = !b.hidden; });
+
+async function runSearch(){
+  const q = $('q').value.trim();
+  if(!q) return;
+  const res = $('results');
+  res.innerHTML = '<div class="locnote">Looking…</div>';
+  try{
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q='+encodeURIComponent(q));
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const hits = await r.json();
+    if(!hits.length){ res.innerHTML = '<div class="locnote">Nothing found by that name. Try the nearest town, or enter coordinates.</div>'; return; }
+    res.innerHTML = '';
+    for(const h of hits){
+      const parts = (h.display_name||'').split(',');
+      const btn = document.createElement('button');
+      btn.className = 'hit';
+      btn.innerHTML = '<b>'+esc(parts[0])+'</b><span>'+esc(parts.slice(1,4).join(',').trim())+'</span>';
+      btn.addEventListener('click', ()=>{
+        setPin(h.lat, h.lon, parts.slice(0,2).join(',').trim());
+        res.innerHTML = '';
+        $('q').value = '';
+        $('elsewhere').hidden = true;
+      });
+      res.appendChild(btn);
+    }
+  }catch(e){
+    res.innerHTML = '<div class="locnote">Couldn’t reach the place search. Enter coordinates instead, or try again.</div>';
+  }
+}
+$('searchBtn').addEventListener('click', runSearch);
+$('q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } });
 document.getElementById('gpsBtn').addEventListener('click',()=>{
   if(!navigator.geolocation){ alert('No location service available — enter coordinates by hand.'); return; }
   navigator.geolocation.getCurrentPosition(
-    p=>{ document.getElementById('lat').value=p.coords.latitude.toFixed(5);
-         document.getElementById('lng').value=p.coords.longitude.toFixed(5); },
+    p=>{ setPin(p.coords.latitude, p.coords.longitude, null);
+         document.getElementById('elsewhere').hidden = true; },
     ()=>alert('Couldn’t get a fix — enter coordinates by hand.'), {enableHighAccuracy:true,timeout:10000});
 });
 
 document.getElementById('askBtn').addEventListener('click', async ()=>{
   const btn=document.getElementById('askBtn'), out=document.getElementById('result');
   const lat=document.getElementById('lat').value.trim(), lng=document.getElementById('lng').value.trim();
-  if(!lat||!lng){ out.innerHTML='<div class="card">Enter a location first — coordinates or the location button.</div>'; return; }
+  if(!lat||!lng){ out.innerHTML='<div class="card">Tap <b>Use my location</b> — or look somewhere else to check ground you’re planning for.</div>'; return; }
   btn.disabled=true; btn.textContent='Asking the ground…';
   out.innerHTML='<div class="loading">Checking who manages this ground…</div>';
   const warnings=[]; const rawSets=[];
