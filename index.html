@@ -538,8 +538,11 @@ function render(act, ctx, rule, notes, warnings, rawSets, place){
 /* ---- What lives here: IPaC's own answer, hedged as range not sighting ---- */
 function statusBadge(st){
   const t=(st||'').toLowerCase();
+  /* IPaC emits internal bookkeeping values like "Resolved taxon" that say nothing
+     about legal status. Showing them invites the wrong inference, so they stay hidden. */
+  if(!st || t.includes('resolved') || t.includes('taxon')) return '';
   const cls = t.includes('endangered') ? 'end' : t.includes('threat') ? 'thr' : '';
-  return st ? '<div class="badge '+cls+'">'+esc(st)+'</div>' : '';
+  return '<div class="badge '+cls+'">'+esc(st)+'</div>';
 }
 function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
   const out = document.getElementById('result');
