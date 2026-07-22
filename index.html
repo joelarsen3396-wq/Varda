@@ -88,6 +88,7 @@
     <input id="lat" inputmode="decimal" placeholder="Latitude" aria-label="Latitude" value="45.3796">
     <input id="lng" inputmode="decimal" placeholder="Longitude" aria-label="Longitude" value="-122.0300">
   </div>
+  <div class="small" style="margin:10px 0 4px;">Or jump to a test spot</div>
   <div class="chips">
     <button class="chiplet" data-lat="45.3796" data-lng="-122.0300">Sandy Ridge</button>
     <button class="chiplet" data-lat="44.6039" data-lng="-123.3325">Oak Creek</button>
@@ -173,7 +174,9 @@ function buildCtx(pointFeats, nearFeats){
     willamette: txt('WILLAMETTE NATIONAL FOREST') || txt('WILLAMETTE'),
     deschutes: txt('DESCHUTES'),
     giffordPinchot: txt('GIFFORD PINCHOT'),
-    acec: ctx.des.has('ACEC') || txt('CRITICAL ENVIRONMENTAL')
+    acec: ctx.des.has('ACEC') || txt('CRITICAL ENVIRONMENTAL'),
+    localPark: ctx.mang.has('CITY') || ctx.mang.has('COUNTY') || ctx.des.has('LP')
+               || txt('CITY PARK') || txt('COUNTY PARK') || txt('REGIONAL PARK')
   };
   ctx.wildernessNearby = !ctx.is.wilderness &&
     ctx.nearUnits.some(u => u.des==='WA' || (u.name+u.locDs).toUpperCase().includes('WILDERNESS'));
@@ -249,6 +252,10 @@ const RULES = [
    head:'Generally open — National Forest',
    why:'National forests are open to public entry unless a closure order says otherwise. Fire, storm, and operational closures are common in season and live only in forest orders, never in map data.',
    src:{n:'USDA Forest Service',u:'https://www.fs.usda.gov/'}, ver:'2026-07' },
+ { act:'access', when:c=>c.is.localPark, v:'yes', conf:'hedged',
+   head:'Open during posted hours — city or county park',
+   why:'Local parks are open to the public during the hours posted at the entrance. The details — dogs, fires, hours, overnight rules — are set by city or county ordinance, and the parks department has them.',
+   src:{n:'Local parks department',u:'https://www.usa.gov/local-governments'}, ver:'2026-07' },
  { act:'access', when:c=>c.is.statePark, v:'yes', conf:'hedged',
    head:'Open during posted hours — Oregon State Parks',
    why:'State parks are open to the public during posted hours. Some charge a day-use parking fee, and staying overnight outside a campground generally isn’t allowed.',
@@ -270,10 +277,18 @@ const RULES = [
    head:'On designated trails — Oregon State Parks',
    why:'Bikes ride on trails designated for them, and since 2025 e-bikes may go wherever bikes may, unless a specific trail is posted otherwise.',
    src:{n:'Oregon State Parks e-bike rules',u:'https://stateparks.oregon.gov/index.cfm?do=v.page&id=131'}, ver:'2026-07' },
+ { act:'bike', when:c=>c.is.localPark, v:'cond', conf:'hedged',
+   head:'On the paths that allow it — local park',
+   why:'City and county parks usually welcome bikes on paved paths and shared-use trails, and usually not on turf, ballfields, or footpath-only routes. Signs at the trailhead carry the local rule.',
+   src:{n:'Local parks department',u:'https://www.usa.gov/local-governments'}, ver:'2026-07' },
  { act:'bike', when:c=>c.is.usfs, v:'unknown', conf:'hedged',
    head:'No trail record at this spot',
    why:'You’re on Forest Service land, but no trail with bike attributes shows in the federal data here. No recorded restriction is not the same as permission — the ranger district knows.',
    src:{n:'USFS trails data',u:'https://data-usfs.hub.arcgis.com/'}, ver:'2026-07' },
+ { act:'drive', when:c=>c.is.localPark, v:'cond', conf:'hedged',
+   head:'Park roads and lots only',
+   why:'In a city or county park, motor vehicles stay on the park roads and parking areas. Driving on paths or turf isn’t permitted.',
+   src:{n:'Local parks department',u:'https://www.usa.gov/local-governments'}, ver:'2026-07' },
  { act:'drive', when:c=>c.is.usfs, v:'no', conf:'verified',
    head:'No designated route here — so not by vehicle',
    why:'On National Forest land, motor vehicles are legal only on routes designated in the Motor Vehicle Use Map. No designated route at this spot means motorized travel isn’t authorized — unless you’re on a state, county, or private road inside the boundary, which follows its own rules.',
