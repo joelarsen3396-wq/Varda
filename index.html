@@ -255,6 +255,8 @@ function buildCtx(pointFeats, nearFeats){
     deschutes: txt('DESCHUTES'),
     giffordPinchot: txt('GIFFORD PINCHOT'),
     acec: ctx.des.has('ACEC') || txt('CRITICAL ENVIRONMENTAL'),
+    refuge: ctx.mang.has('FWS') || ctx.des.has('NWR') || txt('NATIONAL WILDLIFE REFUGE')
+            || txt('WILDLIFE REFUGE') || txt('WATERFOWL PRODUCTION'),
     localPark: ctx.mang.has('CITY') || ctx.mang.has('COUNTY') || ctx.des.has('LP')
                || txt('CITY PARK') || txt('COUNTY PARK') || txt('REGIONAL PARK')
   };
@@ -320,6 +322,11 @@ const RULES = [
    head:'Open — park entrance rules apply',
    why:'National parks are open to visitors under the park’s own hours, fees, and any timed-entry or permit systems. The park’s own site carries what is in force right now.',
    src:{n:'National Park Service',u:'https://www.nps.gov/'}, ver:'2026-07' },
+ { act:'access', when:c=>c.is.refuge, v:'cond', conf:'hedged',
+   head:'Open where the refuge says so',
+   why:'National wildlife refuges are open to visitors in the areas and seasons the refuge designates — wildlife comes first here, and parts of a refuge close for nesting, wintering, or hunting seasons. Daylight hours are the norm and the refuge’s own page carries what’s open today.',
+   src:{n:'National Wildlife Refuge System',u:'https://www.fws.gov/refuges'}, ver:'2026-07',
+   closures:{n:'Refuge alerts and closures',u:'https://www.fws.gov/refuges'} },
  { act:'access', when:c=>c.access.code==='RA', v:'cond', conf:'hedged',
    head:'Access here is recorded as restricted',
    why:'PAD-US flags this ground as restricted access — entry may need a permit, be open only in certain seasons, or be limited to particular uses. The manager below holds the terms.',
@@ -349,6 +356,10 @@ const RULES = [
    closures:{n:'OSU forest closures',u:'https://cf.forestry.oregonstate.edu/'} },
 
  /* ---- generic managers ---- */
+ { act:'bike', when:c=>c.is.refuge, v:'cond', conf:'hedged',
+   head:'Designated routes only — wildlife refuge',
+   why:'Refuges allow bicycles only on roads and trails opened to them; most refuge ground stays off-limits to wheels to keep disturbance low. The refuge’s map marks what’s open.',
+   src:{n:'National Wildlife Refuge System',u:'https://www.fws.gov/refuges'}, ver:'2026-07' },
  { act:'bike', when:c=>c.is.blm, v:'yes', conf:'hedged',
    head:'Generally yes on BLM land',
    why:'BLM lands are broadly open to bicycles on existing roads and trails unless a travel plan or posting says otherwise. Purpose-built systems like Sandy Ridge welcome bikes outright.',
@@ -373,6 +384,10 @@ const RULES = [
    head:'No designated route here — so not by vehicle',
    why:'On National Forest land, motor vehicles are legal only on routes designated in the Motor Vehicle Use Map. No designated route at this spot means motorized travel isn’t authorized — unless you’re on a state, county, or private road inside the boundary, which follows its own rules.',
    src:{n:'36 CFR 261.13',u:CFR('36/section-261.13')}, ver:'2026-07' },
+ { act:'drive', when:c=>c.is.refuge, v:'cond', conf:'hedged',
+   head:'Public roads and auto tour routes only',
+   why:'On a refuge, motor vehicles stay on roads and pull-offs open to the public — many refuges run a signed auto tour route. Off-road travel is prohibited, and some roads close seasonally for wildlife.',
+   src:{n:'National Wildlife Refuge System',u:'https://www.fws.gov/refuges'}, ver:'2026-07' },
  { act:'drive', when:c=>c.is.blm, v:'cond', conf:'hedged',
    head:'Designated and existing routes only',
    why:'BLM travel rules keep vehicles to designated or existing routes, which vary by field office plan. The local office’s travel map is the authority.',
@@ -392,6 +407,7 @@ const RULES = [
 /* ================= soul cards ================= */
 const STEWARD = [
  { when:(c,a)=>c.is.mcdonald, text:'This is a working research forest — study plots, log trucks, and students share these roads. Yield wide, stay on the designated routes, and leave the flagging and instruments exactly where science put them.' },
+ { when:(c,a)=>c.is.refuge, text:'This ground was set aside for the animals rather than for us, and we visit on their terms. Keep to the routes, let the binoculars do the approaching, and leave with the place undisturbed by your having been in it.' },
  { when:(c,a)=>c.is.wilderness||c.wildernessNearby, text:'You’re on the edge of land protected to stay untamed. Travel quietly, keep to durable ground, and let it be wilder for your passing through.' },
  { when:(c,a)=>a==='bike', text:'Wet trail? Ride through the puddle, not around it — riding around widens the trail with every pass. If you’re leaving ruts, the trail is asking you to come back another day.' },
  { when:(c,a)=>a==='access', text:'Park so the next rig can still get by and the gate can still swing. Leave gates as you found them, walk the ground that’s already been walked, and keep it quiet enough that the place sounds like itself.' },
@@ -411,6 +427,9 @@ const LEGAL = [
  { when:(c,a)=>a==='access'&&c.is.usfs, h:'Many trailheads want a pass',
    text:'Across Oregon and Washington a lot of Forest Service trailheads ask for a Northwest Forest Pass or an interagency pass on the windshield. The sign at the lot is the authority.',
    src:{n:'Recreation.gov',u:'https://www.recreation.gov/'} },
+ { when:(c,a)=>c.is.refuge, h:'A refuge runs on its own calendar',
+   text:'Refuges are managed for wildlife first, so the rules shift with the season — areas close for nesting and wintering, hunting is allowed only in designated units during set seasons, and drones are prohibited across the system. Check the refuge’s page before you go.',
+   src:{n:'National Wildlife Refuge System',u:'https://www.fws.gov/refuges'} },
  { when:(c,a)=>c.is.acec, h:'Area of Critical Environmental Concern',
    text:'Part of this ground carries an ACEC designation — the BLM’s flag for fragile or irreplaceable values. Rules on off-trail travel and disturbance tighten here; treat it as the sensitive place it is.',
    src:{n:'BLM ACECs',u:'https://www.blm.gov/programs/planning-and-nepa/planning-101/special-planning-designations/acecs'} }
