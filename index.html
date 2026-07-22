@@ -35,7 +35,16 @@
   .chips{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;}
   .chiplet{font-size:13px; font-weight:600; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--stone); cursor:pointer;}
   .chiplet:active{border-color:var(--pine); color:var(--pine);}
-  .seg{display:flex; gap:6px; margin-bottom:14px;}
+  .seg{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .seg button{min-width:calc(50% - 3px);}
+  .splist{margin-top:10px;}
+  .sprow{background:var(--paper); border-radius:7px; padding:9px 11px; margin-bottom:7px;}
+  .sprow .n{font-weight:700;}
+  .sprow .sci{font-size:12px; color:var(--stone); font-style:italic;}
+  .badge{display:inline-block; font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; border-radius:4px; margin-top:4px; background:var(--line); color:var(--ink);}
+  .badge.end{background:#8C3B22; color:#fff;}
+  .badge.thr{background:var(--blaze); color:#fff;}
+  .subhead{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--pine); margin:14px 0 6px;}
   .seg button{flex:1; padding:10px 4px; font-size:15px; font-weight:600; border:1px solid var(--line); background:var(--card); color:var(--stone); border-radius:8px; cursor:pointer;}
   .seg button[aria-pressed="true"]{background:var(--pine); border-color:var(--pine); color:#fff;}
   /* Verdict */
@@ -100,6 +109,7 @@
     <button data-act="access" aria-pressed="true">Be here</button>
     <button data-act="bike" aria-pressed="false">Ride a bike</button>
     <button data-act="drive" aria-pressed="false">Drive</button>
+    <button data-act="species" aria-pressed="false">What lives here</button>
   </div>
 
   <button class="btn" id="askBtn">Ask</button>
@@ -108,7 +118,7 @@
 <div id="result"></div>
 
 <footer>
-  Land status from the USGS <a href="https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview">Protected Areas Database</a>. Place names from the <a href="https://www.openstreetmap.org/">OpenStreetMap</a> community. Trail and road data from the US Forest Service <a href="https://data-usfs.hub.arcgis.com/">Enterprise Data Warehouse</a>. Rule summaries are hand-maintained and dated; each links its source. Varda informs; it never claims authority over the ground. Always confirm rules and conditions locally — the land’s own stewards know it best.
+  Land status from the USGS <a href="https://www.usgs.gov/programs/gap-analysis-project/science/pad-us-data-overview">Protected Areas Database</a>. Species, birds, and habitat from the US Fish and Wildlife Service <a href="https://ipac.ecosphere.fws.gov/">IPaC</a>. Place names from the <a href="https://www.openstreetmap.org/">OpenStreetMap</a> community. Trail and road data from the US Forest Service <a href="https://data-usfs.hub.arcgis.com/">Enterprise Data Warehouse</a>. Rule summaries are hand-maintained and dated; each links its source. Varda informs; it never claims authority over the ground. Always confirm rules and conditions locally — the land’s own stewards know it best.
 </footer>
 
 <script>
@@ -136,6 +146,59 @@ function ptParams(lat,lng,meters){
   };
   if(meters) { p.distance=String(meters); p.units='esriSRUnit_Meter'; }
   return p;
+}
+
+/* ---- USFWS IPaC: what lives here. POST with a small polygon footprint. ---- */
+const IPAC = 'https://ipac.ecosphere.fws.gov/location/api/resources';
+function asList(x){
+  if(!x) return [];
+  if(Array.isArray(x)) return x;
+  if(typeof x === 'object') return Object.values(x);
+  return [];
+}
+function pickName(o){
+  if(!o) return '';
+  return o.optionalCommonName || o.commonName || o.shortName || o.name
+      || o.optionalScientificName || o.scientificName || o.title || '';
+}
+async function fetchSpecies(lat,lng){
+  const d = 0.0015; // ~150 m box around the pin
+  const ring = [[lng-d,lat-d],[lng+d,lat-d],[lng+d,lat+d],[lng-d,lat+d],[lng-d,lat-d]];
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), 9000);
+  try{
+    const r = await fetch(IPAC, { method:'POST', signal:ctrl.signal,
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify({
+        'location.footprint': JSON.stringify({coordinates:[ring], type:'Polygon'}),
+        timeout: 5, apiVersion:'1.0.0', locationFormat:'GeoJSON',
+        includeOtherFwsResources:true, includeCrithabGeometry:false,
+        saveLocationForProjectCreation:false })
+    });
+    clearTimeout(timer);
+    if(!r.ok) return null;
+    const j = await r.json();
+    const res = j.resources || {};
+    const pops = asList(res.allReferencedPopulationsBySid).length
+               ? asList(res.allReferencedPopulationsBySid) : asList(res.populationsBySid);
+    const seen = new Set();
+    const species = pops.filter(x=>{
+      const n = pickName(x); if(!n || seen.has(n)) return false; seen.add(n); return true;
+    }).map(x=>({
+      name: pickName(x),
+      sci: x.optionalScientificName || x.scientificName || '',
+      status: x.listingStatusName || x.listingStatus || '',
+      group: x.groupName || '',
+      url: x.speciesProfileUrl || ''
+    }));
+    const birds = asList(res.migbirds).map(b=>({name:pickName(b), url:b.speciesProfileUrl||''}))
+                  .filter(b=>b.name);
+    const crithab = asList(res.crithabs).map(c=>pickName(c)).filter(Boolean);
+    const refuges = asList(res.refuges).map(c=>pickName(c)).filter(Boolean);
+    const office  = asList(res.fieldOffices)[0] || null;
+    return { species, birds, crithab, refuges,
+             office: office ? {name:pickName(office), phone:office.phone||office.phoneNumber||'', url:office.url||office.websiteUrl||''} : null };
+  }catch(e){ clearTimeout(timer); return null; }
 }
 
 /* Resolve the pin to a human place name so a bad fix announces itself.
@@ -426,13 +489,15 @@ function render(act, ctx, rule, notes, warnings, rawSets, place){
   if(rule.extras) for(const e of rule.extras) legal.push(e);
   for(const l of LEGAL){ if(legal.length>=2) break; if(l.when(ctx,act)) legal.push(l); }
 
-  html += '<h3 class="sec">Worth knowing here</h3>';
+  html += '<h3 class="sec">Worth knowing here</h3><div id="soulwrap"></div>';
+  let soulHtml = '';
   for(const l of legal.slice(0,2))
-    html += '<div class="soul legal"><div class="tag">'+esc(l.h||'Heads up')+'</div><p>'+esc(l.text)+'</p>'
+    soulHtml += '<div class="soul legal"><div class="tag">'+esc(l.h||'Heads up')+'</div><p>'+esc(l.text)+'</p>'
       + (l.src?'<div class="src"><a href="'+l.src.u+'">'+esc(l.src.n)+'</a></div>':'')+'</div>';
   if(steward)
-    html += '<div class="soul steward"><div class="tag">Treading well</div><p>'+esc(steward.text)+'</p>'
+    soulHtml += '<div class="soul steward"><div class="tag">Treading well</div><p>'+esc(steward.text)+'</p>'
       + '<div class="src">In the spirit of <a href="https://lnt.org/why/7-principles/">Leave No Trace</a></div></div>';
+  html = html.replace('<div id="soulwrap"></div>', '<div id="soulwrap">'+soulHtml+'</div>');
 
   /* nearby */
   const seen = new Set(ctx.units.map(u=>u.name));
@@ -452,6 +517,106 @@ function render(act, ctx, rule, notes, warnings, rawSets, place){
   }
   html += '</details>';
   out.innerHTML = html;
+}
+
+/* ---- What lives here: IPaC's own answer, hedged as range not sighting ---- */
+function statusBadge(st){
+  const t=(st||'').toLowerCase();
+  const cls = t.includes('endangered') ? 'end' : t.includes('threat') ? 'thr' : '';
+  return st ? '<div class="badge '+cls+'">'+esc(st)+'</div>' : '';
+}
+function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
+  const out = document.getElementById('result');
+  let html = '';
+  if(place) html += '<div class="placeline">Asking about ground near <b>'+esc(place)+'</b> — if that isn’t where you meant, fix the pin before trusting the answer.</div>';
+  for(const w of warnings) html += '<div class="warnline">'+esc(w)+'</div>';
+
+  if(!sp){
+    html += '<div class="card verdict-card"><div class="v-head"><span class="v-diamond"></span><h2>Couldn’t reach the species service</h2></div>'
+         + '<div class="v-why">The US Fish and Wildlife Service’s IPaC service didn’t answer just now. Try again on better signal — and treat this as unknown, not as “nothing lives here.”</div></div>';
+    out.innerHTML = html; return;
+  }
+
+  const n = sp.species.length;
+  html += '<div class="card verdict-card '+(n?'v-cond':'v-yes')+'">'
+    + '<div class="v-head"><span class="v-diamond"></span><h2>'
+    + (n ? n+' listed species may range here' : 'No listed species mapped to this spot')
+    + '</h2></div>'
+    + '<div class="v-why">'
+    + (n ? 'These are species whose known or expected range covers this ground — a heads-up, not a sighting. Presence isn’t confirmed, and an empty list isn’t proof of absence either.'
+         : 'No threatened or endangered species have range mapped over this exact spot. That’s the federal range data speaking, not a survey — animals don’t read boundaries.')
+    + '</div>'
+    + '<div class="v-meta">'
+    + (ctx.primary ? 'Ground managed by: <b>'+esc(ctx.primary.name||ctx.primary.mang)+'</b><br>' : '')
+    + 'Live from the US Fish and Wildlife Service at query time.'
+    + (sp.office ? '<br>Local office: <b>'+esc(sp.office.name)+'</b>'+(sp.office.phone?' · '+esc(sp.office.phone):'') : '')
+    + ' Source: <a href="https://ipac.ecosphere.fws.gov/">USFWS IPaC</a></div></div>';
+
+  if(n){
+    html += '<h3 class="sec">Listed species</h3><div class="splist">';
+    for(const x of sp.species){
+      html += '<div class="sprow"><div class="n">'+esc(x.name)+'</div>'
+           + (x.sci?'<div class="sci">'+esc(x.sci)+'</div>':'')
+           + statusBadge(x.status)
+           + (x.url?' <a class="src" href="'+x.url+'" style="font-size:11px;">profile</a>':'')
+           + '</div>';
+    }
+    html += '</div>';
+  }
+
+  if(sp.birds.length){
+    html += '<h3 class="sec">Protected birds in range</h3>'
+         + '<div class="soul legal"><div class="tag">The feather rule, made specific</div>'
+         + '<p>Most wild bird feathers are illegal to keep under the Migratory Bird Treaty Act of 1918 — even ones found on the ground. These are the protected birds whose range covers this spot:</p>'
+         + '<p style="margin-top:6px;"><b>'+sp.birds.slice(0,12).map(b=>esc(b.name)).join('</b> · <b>')+'</b>'
+         + (sp.birds.length>12 ? ' <span class="src">and '+(sp.birds.length-12)+' more</span>' : '')+'</p>'
+         + '<div class="src"><a href="https://www.fws.gov/law/migratory-bird-treaty-act-1918">Migratory Bird Treaty Act</a></div></div>';
+  }
+
+  if(sp.crithab.length){
+    html += '<h3 class="sec">Critical habitat</h3><div class="soul legal"><div class="tag">Designated critical habitat here</div>'
+         + '<p>Ground here is designated critical habitat — the specific places a listed species needs to recover. Federal projects get extra review, and it’s a signal to tread lightly whatever you’re doing.</p>'
+         + '<p style="margin-top:6px;"><b>'+sp.crithab.slice(0,6).map(esc).join('</b> · <b>')+'</b></p>'
+         + '<div class="src"><a href="https://www.fws.gov/project/critical-habitat">USFWS critical habitat</a></div></div>';
+  }
+
+  if(sp.refuges.length){
+    html += '<h3 class="sec">Refuge land</h3><div class="soul legal"><div class="tag">National Wildlife Refuge nearby</div>'
+         + '<p>Refuges run on their own rules — many are closed to bikes and vehicles off designated routes, and some close seasonally for nesting or wintering wildlife. The refuge office has its own regulations.</p>'
+         + '<p style="margin-top:6px;"><b>'+sp.refuges.slice(0,4).map(esc).join('</b> · <b>')+'</b></p>'
+         + '<div class="src"><a href="https://www.fws.gov/refuges">National Wildlife Refuge System</a></div></div>';
+  }
+
+  html += '<div class="soul steward"><div class="tag">Treading well</div>'
+       + '<p>Give wildlife the distance that lets it keep doing what it was doing. If an animal changes course because of you, you were already too close — and the quietest visitors see the most.</p>'
+       + '<div class="src">In the spirit of <a href="https://lnt.org/why/7-principles/">Leave No Trace</a></div></div>';
+
+  html += '<details><summary>What the servers said</summary><div class="rawfeat">IPaC returned '
+       + sp.species.length+' species, '+sp.birds.length+' migratory birds, '
+       + sp.crithab.length+' critical habitat records, '+sp.refuges.length+' refuges.</div></details>';
+
+  out.innerHTML = html;
+}
+
+/* The flag: a species card injected under any other verdict once IPaC answers. */
+function injectSpeciesCard(sp){
+  if(!sp) return;
+  const wrap = document.getElementById('soulwrap');
+  if(!wrap) return;
+  const bits = [];
+  if(sp.species.length){
+    const names = sp.species.slice(0,3).map(x=>x.name).join(', ');
+    bits.push('<div class="soul legal"><div class="tag">Listed species may range here</div>'
+      + '<p>'+esc(names)+(sp.species.length>3?' and '+(sp.species.length-3)+' more':'')
+      + ' — species whose mapped range covers this ground. Not a sighting, just worth knowing before you move through.</p>'
+      + '<div class="src"><a href="https://ipac.ecosphere.fws.gov/">USFWS IPaC</a></div></div>');
+  }
+  if(sp.crithab.length){
+    bits.push('<div class="soul legal"><div class="tag">Designated critical habitat</div>'
+      + '<p>This ground is mapped as critical habitat for a listed species — the specific places it needs to recover. Tread lightly and stay on established routes.</p>'
+      + '<div class="src"><a href="https://www.fws.gov/project/critical-habitat">USFWS</a></div></div>');
+  }
+  if(bits.length) wrap.insertAdjacentHTML('afterbegin', bits.join(''));
 }
 
 /* ================= main flow ================= */
@@ -480,6 +645,7 @@ document.getElementById('askBtn').addEventListener('click', async ()=>{
   out.innerHTML='<div class="loading">Checking who manages this ground…</div>';
   const warnings=[]; const rawSets=[];
   const placeP = placeName(lat,lng);
+  const speciesP = fetchSpecies(parseFloat(lat), parseFloat(lng));
 
   /* core: PAD-US at the point (loud on failure) and nearby (silent) */
   let ptFeats=[], nearFeats=[], matchDist=0;
@@ -495,6 +661,15 @@ document.getElementById('askBtn').addEventListener('click', async ()=>{
   try { nearFeats = await q(PADUS, ptParams(lat,lng,2000)); } catch(e){ /* silent */ }
   rawSets.push(['Managers at this point', ptFeats]);
   const ctx = buildCtx(ptFeats, nearFeats);
+
+  if(activity==='species'){
+    out.innerHTML = '<div class="loading">Asking the Fish and Wildlife Service what ranges here…</div>';
+    const sp = await speciesP;
+    const place0 = await placeP;
+    renderSpecies(ctx, sp, [], warnings, rawSets, place0);
+    btn.disabled=false; btn.textContent='Ask again';
+    return;
+  }
 
   /* enrichment: activity data (silent-ish; note failure, never block) */
   let live=null;
@@ -530,6 +705,7 @@ document.getElementById('askBtn').addEventListener('click', async ()=>{
   const place = await placeP;
   render(activity, ctx, rule, notes, warnings, rawSets, place);
   btn.disabled=false; btn.textContent='Ask again';
+  speciesP.then(injectSpeciesCard);
 });
 </script>
 </body>
