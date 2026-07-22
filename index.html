@@ -179,8 +179,8 @@ async function fetchSpecies(lat,lng){
     if(!r.ok) return null;
     const j = await r.json();
     const res = j.resources || {};
-    const pops = asList(res.allReferencedPopulationsBySid).length
-               ? asList(res.allReferencedPopulationsBySid) : asList(res.populationsBySid);
+    const bySid = res.allReferencedPopulationsBySid || res.populationsBySid || {};
+    const pops = asList(bySid);
     const seen = new Set();
     const species = pops.filter(x=>{
       const n = pickName(x); if(!n || seen.has(n)) return false; seen.add(n); return true;
@@ -191,12 +191,24 @@ async function fetchSpecies(lat,lng){
       group: x.groupName || '',
       url: x.speciesProfileUrl || ''
     }));
-    const birds = asList(res.migbirds).map(b=>({name:pickName(b), url:b.speciesProfileUrl||''}))
-                  .filter(b=>b.name);
+    /* migbirds usually reference a population by sid rather than repeating the name */
+    const deref = ref => {
+      if(!ref) return null;
+      const key = (ref.sid && (ref.sid.val || ref.sid)) || ref.populationSid || ref.population || ref;
+      if(typeof key === 'string' && bySid[key]) return bySid[key];
+      return null;
+    };
+    const birds = asList(res.migbirds).map(b=>{
+      const src = pickName(b) ? b : (deref(b) || b);
+      return { name: pickName(src), url: src.speciesProfileUrl || '' };
+    }).filter(b=>b.name);
     const crithab = asList(res.crithabs).map(c=>pickName(c)).filter(Boolean);
     const refuges = asList(res.refuges).map(c=>pickName(c)).filter(Boolean);
     const office  = asList(res.fieldOffices)[0] || null;
-    return { species, birds, crithab, refuges,
+    const isEsa = st => /endangered|threatened/i.test(st||'');
+    const listed = species.filter(x=>isEsa(x.status));
+    const flagged = species.filter(x=>!isEsa(x.status));
+    return { species, listed, flagged, birds, crithab, refuges,
              office: office ? {name:pickName(office), phone:office.phone||office.phoneNumber||'', url:office.url||office.websiteUrl||''} : null };
   }catch(e){ clearTimeout(timer); return null; }
 }
@@ -537,24 +549,39 @@ function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
     out.innerHTML = html; return;
   }
 
-  const n = sp.species.length;
+  const n = sp.listed.length;
   html += '<div class="card verdict-card '+(n?'v-cond':'v-yes')+'">'
     + '<div class="v-head"><span class="v-diamond"></span><h2>'
     + (n ? n+' listed species may range here' : 'No listed species mapped to this spot')
     + '</h2></div>'
     + '<div class="v-why">'
-    + (n ? 'These are species whose known or expected range covers this ground — a heads-up, not a sighting. Presence isn’t confirmed, and an empty list isn’t proof of absence either.'
-         : 'No threatened or endangered species have range mapped over this exact spot. That’s the federal range data speaking, not a survey — animals don’t read boundaries.')
+    + (n ? 'Species protected under the Endangered Species Act whose known or expected range covers this ground — a heads-up, not a sighting. Presence isn’t confirmed, and an empty list isn’t proof of absence either.'
+         : 'No species protected under the Endangered Species Act have range mapped over this exact spot. That’s federal range data speaking, not a survey — animals don’t read boundaries.')
     + '</div>'
     + '<div class="v-meta">'
     + (ctx.primary ? 'Ground managed by: <b>'+esc(ctx.primary.name||ctx.primary.mang)+'</b><br>' : '')
     + 'Live from the US Fish and Wildlife Service at query time.'
-    + (sp.office ? '<br>Local office: <b>'+esc(sp.office.name)+'</b>'+(sp.office.phone?' · '+esc(sp.office.phone):'') : '')
+    + (sp.office && sp.office.name ? '<br>Local office: <b>'+esc(sp.office.name)+'</b>'+(sp.office.phone?' · '+esc(sp.office.phone):'') : '')
     + ' Source: <a href="https://ipac.ecosphere.fws.gov/">USFWS IPaC</a></div></div>';
 
   if(n){
-    html += '<h3 class="sec">Listed species</h3><div class="splist">';
-    for(const x of sp.species){
+    html += '<h3 class="sec">Protected under the Endangered Species Act</h3><div class="splist">';
+    for(const x of sp.listed){
+      html += '<div class="sprow"><div class="n">'+esc(x.name)+'</div>'
+           + (x.sci?'<div class="sci">'+esc(x.sci)+'</div>':'')
+           + statusBadge(x.status)
+           + (x.url?' <a class="src" href="'+x.url+'" style="font-size:11px;">profile</a>':'')
+           + '</div>';
+    }
+    html += '</div>';
+  }
+
+  if(sp.flagged.length){
+    html += '<h3 class="sec">Also flagged in range</h3>'
+         + '<div class="soul legal"><div class="tag">Watched, but not ESA-listed</div>'
+         + '<p>These carry no Endangered Species Act protection. They’re species of concern and birds of conservation concern — the ones biologists watch because the trend line worries them. Worth knowing; not a legal restriction.</p></div>'
+         + '<div class="splist">';
+    for(const x of sp.flagged){
       html += '<div class="sprow"><div class="n">'+esc(x.name)+'</div>'
            + (x.sci?'<div class="sci">'+esc(x.sci)+'</div>':'')
            + statusBadge(x.status)
@@ -592,7 +619,7 @@ function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
        + '<div class="src">In the spirit of <a href="https://lnt.org/why/7-principles/">Leave No Trace</a></div></div>';
 
   html += '<details><summary>What the servers said</summary><div class="rawfeat">IPaC returned '
-       + sp.species.length+' species, '+sp.birds.length+' migratory birds, '
+       + sp.listed.length+' ESA-listed, '+sp.flagged.length+' otherwise flagged, '+sp.birds.length+' migratory birds, '
        + sp.crithab.length+' critical habitat records, '+sp.refuges.length+' refuges.</div></details>';
 
   out.innerHTML = html;
@@ -604,10 +631,10 @@ function injectSpeciesCard(sp){
   const wrap = document.getElementById('soulwrap');
   if(!wrap) return;
   const bits = [];
-  if(sp.species.length){
-    const names = sp.species.slice(0,3).map(x=>x.name).join(', ');
-    bits.push('<div class="soul legal"><div class="tag">Listed species may range here</div>'
-      + '<p>'+esc(names)+(sp.species.length>3?' and '+(sp.species.length-3)+' more':'')
+  if(sp.listed.length){
+    const names = sp.listed.slice(0,3).map(x=>x.name).join(', ');
+    bits.push('<div class="soul legal"><div class="tag">Endangered Species Act listings range here</div>'
+      + '<p>'+esc(names)+(sp.listed.length>3?' and '+(sp.listed.length-3)+' more':'')
       + ' — species whose mapped range covers this ground. Not a sighting, just worth knowing before you move through.</p>'
       + '<div class="src"><a href="https://ipac.ecosphere.fws.gov/">USFWS IPaC</a></div></div>');
   }
