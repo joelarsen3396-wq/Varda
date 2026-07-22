@@ -226,10 +226,21 @@ still a federal offence to keep. People break this one constantly and in
 complete good faith, because the news said "recovered." That's the soul
 feature's whole thesis in one card: the rule you didn't know existed.
 
-**Empty buckets seen so far:** `crithabs`, `refuges`, and `wetlands`
-returned 0 at every Oregon test point. Whether that's genuine absence or a
-request-parameter gap is unverified — treat those sections as untested,
-not as working.
+**Three buckets don't work, and we stopped guessing.** `crithabs`,
+`refuges`, and `wetlands` returned 0 everywhere — including a query taken
+standing *inside* William L. Finley National Wildlife Refuge, which holds
+both a refuge and designated critical habitat. That's conclusive: it's a
+request gap, not absence. Rather than keep guessing at parameters, refuge
+detection moved to PAD-US, which already carried the refuge name in the
+manager field. Ask the source that answers. Critical habitat remains
+genuinely unavailable to us for now — noted as a known hole, not quietly
+skipped.
+
+**Refuges are their own coverage tier.** The National Wildlife Refuge
+System is the federal land anglers, hunters, and field biologists touch
+most, and the table had no rows for it until Finley exposed the gap. Rules
+worth knowing: designated areas and seasons only, wildlife first, hunting
+in set units during set seasons, drones prohibited system-wide.
 
 ## 5. The rules table
 
