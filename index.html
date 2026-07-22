@@ -494,8 +494,49 @@ function confDateLine(r){
 }
 function verdictClass(v){ return v==='yes'?'v-yes':v==='cond'?'v-cond':v==='no'?'v-no':'v-unknown'; }
 
+/* ---- Staleness enforced by code, not diligence ----
+   A row's confidence degrades automatically as it ages past review:
+   verified/hedged voice → hedged → "contact this office", no human in the loop.
+   Half-lives differ by source: a CFR citation is near-permanent; a forest
+   policy page wants annual review; a phone-call row rots fastest. */
+/* For testing: ?asof=YYYY-MM lets you pretend it's a future date and watch rows age. */
+function nowForAging(){
+  const p = new URLSearchParams(location.search).get('asof');
+  const m = p && /^(\d{4})-(\d{2})$/.exec(p);
+  return m ? new Date(+m[1], +m[2]-1, 1) : new Date();
+}
+function monthsSince(ver){
+  const m = /^(\d{4})-(\d{2})/.exec(ver||''); if(!m) return 0;
+  const then = new Date(+m[1], +m[2]-1, 1), now = nowForAging();
+  return (now.getFullYear()-then.getFullYear())*12 + (now.getMonth()-then.getMonth());
+}
+function halfLifeMonths(r){
+  const src = (r.src && r.src.n || '').toLowerCase();
+  if(/cfr|wilderness act|treaty|protection act/.test(src)) return 120; // codified law: a decade
+  if(r.contact || /phone|office/.test(src)) return 12;                  // phone-call rows: yearly
+  return 24;                                                            // policy-page rows: two years
+}
+/* Returns a possibly-demoted copy of the rule, plus an aging note for the meta line. */
+function ageRule(rule){
+  if(!rule || rule.ver==='live' || rule.conf==='none') return {rule, aged:null};
+  const age = monthsSince(rule.ver), life = halfLifeMonths(rule);
+  if(age <= life) return {rule, aged:null};
+  const r = Object.assign({}, rule);
+  if(age > life*2 && rule.contact){
+    /* long past review and we have someone to call: hand it off */
+    r.conf = 'none';
+    r.head = 'This answer needs re-checking';
+    r.why = 'Our verified rule for this ground has aged past the point we’ll stand behind it. The office below has the current answer.';
+    return {rule:r, aged:'This row is '+age+' months old — past its review window, so it’s been stepped down to unverified.'};
+  }
+  /* past review but still usable: drop verified voice to hedged */
+  if(r.conf==='verified') r.conf = 'hedged';
+  return {rule:r, aged:'This row was last checked '+age+' months ago — treat it as general guidance until it’s re-verified.'};
+}
+
 function render(act, ctx, rule, notes, warnings, rawSets, place){
   const out = document.getElementById('result');
+  const _aged = ageRule(rule); rule = _aged.rule;
   const isCode = v => !v || /^[A-Z]{2}\s?N?\d+$/.test(String(v).trim()) || String(v).trim().length<4;
   const mgr = ctx.primary ? esc(ctx.primary.name || ctx.primary.locMang || ctx.primary.mang) : 'No public unit recorded';
   const office = ctx.primary && !isCode(ctx.primary.locMang) && ctx.primary.locMang!==ctx.primary.name ? ' · '+esc(ctx.primary.locMang) : '';
@@ -517,6 +558,7 @@ function render(act, ctx, rule, notes, warnings, rawSets, place){
     + esc(CONF_LINE[rule.conf]||'')+'<br>'
     + esc(confDateLine(rule))+' Source: <a href="'+rule.src.u+'">'+esc(rule.src.n)+'</a>'
     + (rule.closures? ' · <a href="'+rule.closures.u+'">'+esc(rule.closures.n)+'</a>':'')
+    + (_aged.aged? '<br><span style="color:var(--blaze);">'+esc(_aged.aged)+'</span>':'')
     + '</div></div>';
 
   /* soul cards: one stewardship + up to two legal */
