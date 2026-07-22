@@ -445,6 +445,9 @@ function render(act, ctx, rule, notes, warnings, rawSets, place){
   for(const l of legal.slice(0,2))
     soulHtml += '<div class="soul legal"><div class="tag">'+esc(l.h||'Heads up')+'</div><p>'+esc(l.text)+'</p>'
       + (l.src?'<div class="src"><a href="'+l.src.u+'">'+esc(l.src.n)+'</a></div>':'')+'</div>';
+  /* Species arrives after the verdict — hold its place so nothing jumps under the reader. */
+  soulHtml += '<div id="speciesslot"><div class="soul legal" style="opacity:.55;"><div class="tag">What ranges here</div>'
+    + '<p class="src">Asking the Fish and Wildlife Service…</p></div></div>';
   if(steward)
     soulHtml += '<div class="soul steward"><div class="tag">Treading well</div><p>'+esc(steward.text)+'</p>'
       + '<div class="src">In the spirit of <a href="https://lnt.org/why/7-principles/">Leave No Trace</a></div></div>';
@@ -577,9 +580,9 @@ function renderSpecies(ctx, sp, notes, warnings, rawSets, place){
 
 /* The flag: a species card injected under any other verdict once IPaC answers. */
 function injectSpeciesCard(sp){
-  if(!sp) return;
-  const wrap = document.getElementById('soulwrap');
-  if(!wrap) return;
+  const slot = document.getElementById('speciesslot');
+  if(!slot) return;
+  if(!sp){ slot.innerHTML = ''; return; }   /* silent miss: the slot just closes */
   const bits = [];
   if(sp.listed.length){
     const names = sp.listed.slice(0,3).map(x=>x.name).join(', ');
@@ -598,7 +601,7 @@ function injectSpeciesCard(sp){
       + '<p>This ground is mapped as critical habitat for a listed species — the specific places it needs to recover. Tread lightly and stay on established routes.</p>'
       + '<div class="src"><a href="https://www.fws.gov/project/critical-habitat">USFWS</a></div></div>');
   }
-  if(bits.length) wrap.insertAdjacentHTML('afterbegin', bits.join(''));
+  slot.innerHTML = bits.join('');
 }
 
 /* ================= main flow ================= */
