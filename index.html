@@ -9,22 +9,25 @@
 <link rel="icon" href="icon-512.png" type="image/png" sizes="512x512">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Besley:wght@700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#F7F6F1; --ink:#1B211D; --pine:#2F5D42; --blaze:#DD5A12;
-    --stone:#7C837B; --line:#DDDCD4; --card:#FFFFFF; --clay:#8C3B22;
+    --paper:#EDEEE7; --ink:#20261F; --pine:#33604A; --blaze:#C4741F;
+    --stone:#8D8F85; --line:#D8DAD0; --card:#FFFFFF; --clay:#8C3B22;
+    --lichen:#A9B18C; --lichenwash:#F1F3E9;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
     background:var(--paper); color:var(--ink);
-    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-    font-size:14px; line-height:1.5; padding:20px 16px 48px; max-width:640px; margin:0 auto;
+    font-family:'Atkinson Hyperlegible',system-ui,sans-serif;
+    font-size:15px; line-height:1.5; padding:20px 16px 48px; max-width:640px; margin:0 auto;
   }
-  h1,h2,h3,.btn,.seg button{font-family:'Barlow Condensed',system-ui,sans-serif;}
+  h1,h2,h3{font-family:'Besley',serif;}
+  .btn,.seg button{font-family:'Atkinson Hyperlegible',system-ui,sans-serif;}
+  .eyebrow,label.small,.subhead,h3.sec,.v-meta,.coords input,.rawfeat,.badge,.soul .src,.placeline{font-family:'IBM Plex Mono',ui-monospace,monospace;}
   header{margin-bottom:20px;}
   .eyebrow{color:var(--stone); font-size:11px; letter-spacing:.14em; text-transform:uppercase;}
-  h1{font-size:34px; font-weight:700; line-height:1.1; margin-top:4px;}
+  h1{font-size:29px; font-weight:700; line-height:1.1; margin-top:4px;}
   h1 small{color:var(--pine); font-weight:600;}
   .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 16px; margin-bottom:16px;}
   label.small{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--stone); display:block; margin-bottom:6px;}
@@ -41,18 +44,18 @@
   .chosen b{font-weight:700;}
   .coords input{flex:1; min-width:0; font:inherit; font-size:13px; padding:9px 10px; border:1px solid var(--line); border-radius:7px; background:var(--paper);}
   .coords input:focus{outline:2px solid var(--pine); outline-offset:1px;}
-  .btn{display:block; width:100%; padding:13px; font-size:18px; font-weight:600; letter-spacing:.03em; color:#fff; background:var(--pine); border:none; border-radius:8px; cursor:pointer; -webkit-tap-highlight-color:transparent;}
-  .btn:active{background:#254B35;}
+  .btn{display:block; width:100%; padding:13px; font-size:17px; font-weight:600; letter-spacing:.03em; color:#fff; background:var(--pine); border:none; border-radius:8px; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .btn:active{background:#28503C;}
   .btn:focus-visible{outline:3px solid var(--blaze); outline-offset:2px;}
   .btn[disabled]{background:var(--stone); cursor:wait;}
   .btn.ghost{background:var(--paper); color:var(--pine); border:1px solid var(--pine); font-size:15px; padding:10px; margin-bottom:10px;}
   .seg{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
   .seg button{min-width:calc(50% - 3px);}
   .splist{margin-top:10px;}
-  .sprow{background:var(--paper); border-radius:7px; padding:9px 11px; margin-bottom:7px;}
+  .sprow{background:var(--lichenwash); border-radius:7px; padding:9px 11px; margin-bottom:7px;}
   .sprow .n{font-weight:700;}
   .sprow .sci{font-size:12px; color:var(--stone); font-style:italic;}
-  .badge{display:inline-block; font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; border-radius:4px; margin-top:4px; background:var(--line); color:var(--ink);}
+  .badge{display:inline-block; font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:2px 7px; border-radius:4px; margin-top:4px; background:var(--lichen); color:var(--ink);}
   .badge.end{background:#8C3B22; color:#fff;}
   .badge.thr{background:var(--blaze); color:#fff;}
   .subhead{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--pine); margin:14px 0 6px;}
@@ -66,7 +69,7 @@
   .v-head{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
   .v-diamond{width:20px; height:20px; transform:rotate(45deg); border-radius:4px; background:var(--stone); flex:none;}
   .v-yes .v-diamond{background:var(--pine);} .v-cond .v-diamond{background:var(--blaze);} .v-no .v-diamond{background:var(--clay);}
-  .v-head h2{font-size:26px; font-weight:700; line-height:1.1;}
+  .v-head h2{font-size:23px; font-weight:700; line-height:1.1;}
   .v-why{font-size:14px; margin-bottom:10px;}
   .v-meta{font-size:12px; color:var(--stone); line-height:1.7;}
   .v-meta a{color:var(--pine);}
@@ -74,7 +77,7 @@
   /* Soul cards */
   .soul{border-radius:9px; padding:12px 14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:5px solid var(--line);}
   .soul.legal{border-left-color:var(--blaze);}
-  .soul.steward{border-left-color:var(--pine);}
+  .soul.steward{border-left-color:var(--pine); background:var(--lichenwash);}
   .soul .tag{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--stone); margin-bottom:4px;}
   .soul.legal .tag{color:var(--blaze);} .soul.steward .tag{color:var(--pine);}
   .soul p{font-size:13px;}
