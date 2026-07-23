@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-a",
+  "version": "2026-07-b",
   "updated": "2026-07",
   "note": "Order is the logic: hard no's first, named units before agencies, fall-throughs last. First match wins. Live activity data slots in between the hard no's and the manager defaults.",
   "rules": [
@@ -386,6 +386,187 @@
       }
     },
     {
+      "act": "rocks",
+      "match": {
+        "land": "nps"
+      },
+      "v": "no",
+      "conf": "verified",
+      "hard": true,
+      "head": "Not here — national park",
+      "why": "Collecting rocks, minerals, and fossils is prohibited throughout the National Park System. Everything in a park is protected in place — look, photograph, leave it.",
+      "src": {
+        "n": "36 CFR 2.1",
+        "u": "https://www.ecfr.gov/current/title-36/section-2.1"
+      },
+      "ver": "2026-07",
+      "redirect": "BLM land outside the park is the traditional rockhounding ground — generally open to casual collection."
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "wilderness"
+      },
+      "v": "no",
+      "conf": "hedged",
+      "hard": true,
+      "head": "Leave it — designated Wilderness",
+      "why": "Wilderness is managed to keep everything in place. Collecting isn’t permitted here; the honest guidance is to take nothing but the walk.",
+      "src": {
+        "n": "Wilderness Act of 1964",
+        "u": "https://www.wilderness.net/learn-about-wilderness/key-laws/wilderness-act/default.php"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "refuge"
+      },
+      "v": "no",
+      "conf": "hedged",
+      "head": "Not on a wildlife refuge",
+      "why": "National wildlife refuges are managed for wildlife first, and collecting rocks, plants, or artifacts isn’t part of the public welcome. The refuge office can tell you about the rare exceptions.",
+      "src": {
+        "n": "National Wildlife Refuge System",
+        "u": "https://www.fws.gov/refuges"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "mcdonald"
+      },
+      "v": "no",
+      "conf": "hedged",
+      "hand": true,
+      "head": "Not without OSU’s permission",
+      "why": "McDonald-Dunn is Oregon State University research land — collecting isn’t part of the public day-use welcome. Ask OSU College Forests before taking anything.",
+      "src": {
+        "n": "OSU College Forests",
+        "u": "https://cf.forestry.oregonstate.edu/"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "giffordPinchot"
+      },
+      "v": "cond",
+      "conf": "verified",
+      "head": "Permit first — this forest requires one",
+      "why": "The Gifford Pinchot requires a permit for all rockhounding, including small personal amounts of agate and petrified wood (the small-quantity permit is free). Some areas are closed entirely.",
+      "src": {
+        "n": "Gifford Pinchot NF minerals",
+        "u": "https://www.fs.usda.gov/r06/giffordpinchot/permits/minerals-rocks"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "willamette"
+      },
+      "v": "unknown",
+      "conf": "none",
+      "hand": true,
+      "head": "We don’t have a verified answer here",
+      "why": "The Willamette National Forest has no published rockhounding policy we could find (checked July 2026 — the old page is gone). The forest can tell you directly.",
+      "contact": "Willamette NF Supervisor’s Office · 541-225-6300",
+      "src": {
+        "n": "Willamette NF",
+        "u": "https://www.fs.usda.gov/r06/willamette"
+      },
+      "ver": "2026-07",
+      "closures": {
+        "n": "Willamette NF alerts",
+        "u": "https://www.fs.usda.gov/r06/willamette/alerts"
+      }
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "deschutes"
+      },
+      "v": "unknown",
+      "conf": "none",
+      "hand": true,
+      "head": "We don’t have a verified answer here",
+      "why": "The Deschutes National Forest’s rockhounding guidance mostly points to neighbouring lands; we haven’t verified its own policy. The forest can tell you directly.",
+      "contact": "Deschutes NF Supervisor’s Office · 541-383-5300",
+      "src": {
+        "n": "Deschutes NF",
+        "u": "https://www.fs.usda.gov/r06/deschutes"
+      },
+      "ver": "2026-07",
+      "closures": {
+        "n": "Deschutes NF alerts",
+        "u": "https://www.fs.usda.gov/r06/deschutes/alerts"
+      }
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "blm"
+      },
+      "v": "yes",
+      "conf": "hedged",
+      "head": "Generally yes — casual collection on BLM land",
+      "why": "Personal, non-commercial collecting of rocks, minerals, and petrified wood is generally allowed: up to 25 pounds plus one piece per day, 250 pounds per year, hand tools only, not in developed sites, and never on someone’s active mining claim.",
+      "src": {
+        "n": "43 CFR 3622",
+        "u": "https://www.ecfr.gov/current/title-43/part-3622"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "statePark"
+      },
+      "v": "no",
+      "conf": "hedged",
+      "head": "Generally not in state parks",
+      "why": "Oregon State Parks broadly prohibit removing rocks and minerals, to keep the parks whole. Posted exceptions are rare.",
+      "src": {
+        "n": "Oregon State Parks",
+        "u": "https://stateparks.oregon.gov/"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "localPark"
+      },
+      "v": "no",
+      "conf": "hedged",
+      "head": "Generally not in a city or county park",
+      "why": "Local parks are kept intact for everyone — taking rocks, plants, or artifacts is usually prohibited by ordinance. The parks department has the specifics.",
+      "src": {
+        "n": "Local parks department",
+        "u": "https://www.usa.gov/local-governments"
+      },
+      "ver": "2026-07"
+    },
+    {
+      "act": "rocks",
+      "match": {
+        "land": "usfs"
+      },
+      "v": "cond",
+      "conf": "hedged",
+      "head": "Varies forest by forest",
+      "why": "National forests handle rockhounding differently — some allow small free-use quantities, some require a permit. This forest’s ranger district has the answer for this ground.",
+      "src": {
+        "n": "USFS rockhounding brochure",
+        "u": "https://www.fs.usda.gov/sites/default/files/fs_media/fs_document/rhbrochureFS1091.pdf"
+      },
+      "ver": "2026-07"
+    },
+    {
       "act": "any",
       "v": "unknown",
       "conf": "none",
@@ -444,6 +625,13 @@
     },
     {
       "match": {
+        "act": "rocks",
+        "any": true
+      },
+      "text": "Take what you’ll truly treasure, not what you can carry. Fill your holes before you leave, and leave the ground looking unvisited — the best collectors are the ones you can’t tell were ever there."
+    },
+    {
+      "match": {
         "act": "bike",
         "any": true
       },
@@ -471,6 +659,33 @@
     }
   ],
   "legal": [
+    {
+      "match": {
+        "act": "rocks",
+        "any": true
+      },
+      "h": "The finds that are never yours to keep",
+      "text": "Arrowheads, pottery, and anything made by human hands are federally protected — pocketing one is a crime, not a souvenir. Same for vertebrate fossils: bones and teeth need a scientific permit, always.",
+      "src": {
+        "n": "Archaeological Resources Protection Act",
+        "u": "https://www.nps.gov/subjects/archeology/archeological-resources-protection-act.htm"
+      }
+    },
+    {
+      "match": {
+        "act": "rocks",
+        "landAny": [
+          "blm",
+          "usfs"
+        ]
+      },
+      "h": "A claim may exist here",
+      "text": "Active mining claims give someone else rights to the minerals underfoot, and no free map shows them reliably. Watch for claim posts, and when in doubt ask the field office before you dig.",
+      "src": {
+        "n": "BLM mining claims",
+        "u": "https://www.blm.gov/programs/energy-and-minerals/mining-and-minerals"
+      }
+    },
     {
       "match": {
         "act": "bike",
